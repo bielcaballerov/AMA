@@ -58,14 +58,34 @@ looCV_log_lik_7
 ```{r}
 #sum of the product of the hx_f2 vector plot histograms for different number of breaks nbr
 
-for (i in c(1:15)){
-  A <- min(hx_f2)-.05*diff(range(hx_f2)) 
-  Z <- max(hx_f2)+.05*diff(range(hx_f2))
-  nbr <- i
-  hist(hx_f2,breaks=seq(A,Z,length=nbr+1),freq=F)
-}
-```
+log_liks = list()
 
+for (i in c(1:15)){
+  #A <- min(hx_f2)-.05*diff(range(hx_f2)) 
+  #Z <- max(hx_f2)+.05*diff(range(hx_f2))
+  nbr <- i
+  hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1),freq=F, plot = FALSE)
+  hx_f_i <- stepfun(hx_i$breaks,c(0,hx_i$density,0))
+  n <- length(x)
+  b <- hx_i$breaks[2]-hx_i$breaks[1]
+  hx_f2_i <- n/(n-1)*hx_f_i(x) - 1/((n-1)*b)
+  print(min(hx_f2_i))
+  
+  hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1),freq=F)
+  points(x, hx_f_i(x))
+  points(x, hx_f2_i, col='red')
+
+  looCV_log_lik <- sum(log(hx_f2_i))
+  log_liks <- append(log_liks, looCV_log_lik)
+}
+plot(seq(1, 15), log_liks)
+nbr_opt <- which.max(log_liks)
+hist(x,breaks=seq(A,Z,length=nbr_opt+1),freq=F)
+
+# TODO: - avoid production of NaNs, 
+#       - is it a problem that 'freq' is not used for some cases?
+
+```
 
 
 
