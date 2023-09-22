@@ -49,7 +49,7 @@ points(x, hx_f2, col="red")
 ```
 #4
 ```{r}
-looCV_log_lik_7 <- prod(hx_f2)
+looCV_log_lik_7 <- sum(log(hx_f2))
 looCV_log_lik_7
 ```
 
