@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #2
 ```{r CDrate}
-cdrate.df <-read.table("../cdrate.dat.txt")
+cdrate.df <-read.table("./cdrate.dat.txt")
 head(cdrate.df)
 x <- cdrate.df[,1]
 # sort(CDrate)
@@ -47,9 +47,14 @@ hx_f <- stepfun(hx$breaks,c(0,hx$density,0))
 points(x, hx_f(x))
 points(x, hx_f2, col="red")
 ```
-
-
 #4
+```{r}
+looCV_log_lik_7 <- prod(hx_f2)
+looCV_log_lik_7
+```
+
+
+#5
 ```{r}
 #sum of the product of the hx_f2 vector plot histograms for different number of breaks nbr
 
