@@ -1,23 +1,25 @@
 ---
 title: "Density Estimation"
+subtitle: "Bandwidht choice by leave-one-out maximum likelihood"
 author: "Biel Caballero, Menzenbach Svenja and Reyes Illescas Kleber Enrique"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Histogram
 
-#1
+1. At the slides we have seen the following relationship \[\hat{f}_{h,(-i)}(x_i) =  \frac{n}{n-1} \left( \hat{f}_{h}(x_i) -\frac{K(0)}{nh} \right)\] between the leave-one-out kernel density estimator $\hat{f}_{h,(-i)}(x)$ and the kernel density estimator using all the observations $\hat{f}_{h}(x)$, when both are evaluated at $x_i$, one of the observed data. Find a similar relationship between the histogram estimator of the density function $\hat{f}_{hist}(x)$ and its leave-one-out version, $\hat{f}_{hist,(-i)}(x)$, when both are evaluated at $x_i$.
 
-
-
-#2
+2. Read the CD rate data set and call x the first column. Then define A, Z and nbr and plot the histogram of x
 ```{r CDrate}
 cdrate.df <-read.table("./cdrate.dat.txt")
-head(cdrate.df)
+# head(cdrate.df)
 x <- cdrate.df[,1]
 # sort(CDrate)
 # # Stem-and-Leaf plot
@@ -29,13 +31,21 @@ x <- cdrate.df[,1]
 A <- min(x)-.05*diff(range(x)) 
 Z <- max(x)+.05*diff(range(x))
 nbr <- 7
+
 hx <- hist(x,breaks=seq(A,Z,length=nbr+1),freq=F)
 hx_f <- stepfun(hx$breaks,c(0,hx$density,0))
 points(x, hx_f(x))
+```
+
+
+```{r}
+
 
 ```
 
-#3
+
+
+3. Use the formula you have found before relating $\hat{f}_{hist}(x_i)$ and $\hat{f}_{hist,(-i)}(x_i)$ to compute $\hat{f}_{hist,(-i)}(x),i=1,...,n$, . Then add the points $(x_i, \hat{f}_{hist,(-i)}(x_i)),i=1,...,n$,  , to the previous plot
 ```{r}
 hx_f2<-length(x)/(length(x)-1)*hx_f(x)-1/((length(x)-1)*(hx$breaks[2]-hx$breaks[1]))
 
@@ -47,23 +57,23 @@ hx_f <- stepfun(hx$breaks,c(0,hx$density,0))
 points(x, hx_f(x))
 points(x, hx_f2, col="red")
 ```
-#4
+
+4. Compute the leave-one-out log-likelihood function corresponding to the previous histogram, at which *nbr=7* has been used
 ```{r}
 looCV_log_lik_7 <- sum(log(hx_f2))
 looCV_log_lik_7
 ```
 
 
-#5
+5. **Choosing** *nbr* **by leave-one-out Cross Validation (looCV)**. Consider now the set *seq(1,15)* as possible values for *nbr*, the number of intervals of the histogram. For each of them compute the leave-one-out log-likelihood function (*looCv_log_lik*) fir the corresponding histogram. Then plot the values of *looCv_log_lik* against the values of *nbr* and select the optimal value of *nbr* as that at which *looCv_log_lik* takes its maximum. Finally, plot the histogram of *x* using the optimal value of *nbr*
 ```{r}
 #sum of the product of the hx_f2 vector plot histograms for different number of breaks nbr
 
 log_liks = list()
 
-for (i in c(1:15)){
+for (nbr in c(1:15)){
   #A <- min(hx_f2)-.05*diff(range(hx_f2)) 
   #Z <- max(hx_f2)+.05*diff(range(hx_f2))
-  nbr <- i
   hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1),freq=F, plot = FALSE)
   hx_f_i <- stepfun(hx_i$breaks,c(0,hx_i$density,0))
   n <- length(x)
@@ -87,23 +97,28 @@ hist(x,breaks=seq(A,Z,length=nbr_opt+1),freq=F)
 
 ```
 
-# 6
+6. **Chossing** *b* **by looCV**. Let *b* be the common width of the bins of a histogram. Consider the set $seq((Z-A)/15, (Z-A)/1, length=30)$ as possible values for *b*. Select the value of *b* maximizing the leave-one-out log-likelihood function, and plot the corresponding histogram
 ```{r}
 b_set <- seq((Z-A)/15, (Z-A), length=30)
+
 for(b in b_set){
   hx <- hist(x, breaks=seq(A, Z+b, by=b), plot=F)
   plot(hx, freq = FALSE)
 }
 
 ```
+7. Recycle the functions *graph.mixt* and *sim.mixt* defined at *density_estimation.Rmd* to generate n = 100 data from \[f(x)=(3/4)N(x;m=0,s=1)+(1/4)N(x;m=3/2,s=1/3)\] Let *b* be the bin width of a histogram estimator of f(x) using the generated data. Select the value of *b* maximizing the leave-one-out log-likelihood function, and plot the corresponding histogram. Compare with the results obtained using the Scott’s formula: \[b_{Scott} = 3.49St.Dev(X)_n^{-1/3}\].
+
+```{r}
+# TODO
+
+```
 
 
 
+# Kernel density estimator
 
-
-
-
-
+8.\[\hat{f}_{h,(-i)}(x_i) =  \frac{n}{n-1} \left( \hat{f}_{h}(x_i) -\frac{K(0)}{nh} \right)\]
 
 
 
