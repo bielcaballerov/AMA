@@ -87,6 +87,16 @@ hist(x,breaks=seq(A,Z,length=nbr_opt+1),freq=F)
 
 ```
 
+# 6
+```{r}
+b_set <- seq((Z-A)/15, (Z-A), length=30)
+for(b in b_set){
+  hx <- hist(x, breaks=seq(A, Z+b, by=b), plot=F)
+  plot(hx, freq = FALSE)
+}
+
+```
+
 
 
 
