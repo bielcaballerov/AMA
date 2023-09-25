@@ -16,6 +16,21 @@ knitr::opts_chunk$set(echo = TRUE)
 
 1. At the slides we have seen the following relationship \[\hat{f}_{h,(-i)}(x_i) =  \frac{n}{n-1} \left( \hat{f}_{h}(x_i) -\frac{K(0)}{nh} \right)\] between the leave-one-out kernel density estimator $\hat{f}_{h,(-i)}(x)$ and the kernel density estimator using all the observations $\hat{f}_{h}(x)$, when both are evaluated at $x_i$, one of the observed data. Find a similar relationship between the histogram estimator of the density function $\hat{f}_{hist}(x)$ and its leave-one-out version, $\hat{f}_{hist,(-i)}(x)$, when both are evaluated at $x_i$.
 
+
+Starting from the formula for the histogram seen in the slides:
+\[\hat{f}_{hist}(x) = \sum_{j=1}^{m} \frac{n_j}{n} \frac{1}{b}I_{B_{j}} (x) \] 
+
+And knowing the following equalities for the single point $x_i$
+\[\hat{f}_{hist}(x_i) = \frac{n_j}{n} \frac{1}{b}\qquad \hat{f}_{hist,(-i)}(x_i) = \frac{n_j-1}{n-1} \frac{1}{b}\] 
+
+We can transform the equation on the left to $n_j = nb\hat{f}_{hist}(x_i)$. Then, we can replace this value of $n_j$ into the equation on the left (loo-cv). This give us then following equations:
+
+\[\hat{f}_{hist,(-i)}(x_i) = \frac{nb\hat{f}_{hist}(x_i)-1}{n-1} \frac{1}{b}\] 
+\[\hat{f}_{hist,(-i)}(x_i) = \frac{n\hat{f}_{hist}(x_i)b}{(n-1)b}-\frac{1}{(n-1)b}\] 
+\[\hat{f}_{hist,(-i)}(x_i) = \frac{n}{n-1}\hat{f}_{hist}(x_i)-\frac{1}{(n-1)b}\] 
+\[\hat{f}_{hist,(-i)}(x_i) = \frac{1}{n-1} \left(n\hat{f}_{hist}(x_i)-\frac{1}{b} \right)\] 
+
+
 2. Read the CD rate data set and call x the first column. Then define A, Z and nbr and plot the histogram of x
 ```{r CDrate}
 cdrate.df <-read.table("./cdrate.dat.txt")
@@ -38,16 +53,14 @@ points(x, hx_f(x))
 ```
 
 
+3. Use the formula you have found before relating $\hat{f}_{hist}(x_i)$ and $\hat{f}_{hist,(-i)}(x_i)$ to compute $\hat{f}_{hist,(-i)}(x),i=1,...,n$, . Then, add the points $(x_i, \hat{f}_{hist,(-i)}(x_i)),i=1,...,n$, to the previous plot.
+
+> In the question 2 we have obtained the next formula: 
+> \[\hat{f}_{hist,(-i)}(x_i) = \frac{n}{n-1}\hat{f}_{hist}(x_i)-\frac{1}{(n-1)b}\] 
+> We can use it to generate new points that we can compare with the previous plot.
+
 ```{r}
-
-
-```
-
-
-
-3. Use the formula you have found before relating $\hat{f}_{hist}(x_i)$ and $\hat{f}_{hist,(-i)}(x_i)$ to compute $\hat{f}_{hist,(-i)}(x),i=1,...,n$, . Then add the points $(x_i, \hat{f}_{hist,(-i)}(x_i)),i=1,...,n$,  , to the previous plot
-```{r}
-hx_f2<-length(x)/(length(x)-1)*hx_f(x)-1/((length(x)-1)*(hx$breaks[2]-hx$breaks[1]))
+hx_f2<-(length(x)/(length(x)-1)* hx_f(x))- 1/((length(x)-1)*(hx$breaks[2]-hx$breaks[1]))
 
 A <- min(x)-.05*diff(range(x)) 
 Z <- max(x)+.05*diff(range(x))
@@ -119,28 +132,6 @@ for(b in b_set){
 # Kernel density estimator
 
 8.\[\hat{f}_{h,(-i)}(x_i) =  \frac{n}{n-1} \left( \hat{f}_{h}(x_i) -\frac{K(0)}{nh} \right)\]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
