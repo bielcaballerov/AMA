@@ -60,7 +60,9 @@ points(x, hx_f(x))
 > We can use it to generate new points that we can compare with the previous plot.
 
 ```{r}
-hx_f2<-(length(x)/(length(x)-1)* hx_f(x))- 1/((length(x)-1)*(hx$breaks[2]-hx$breaks[1]))
+n <- length(x)
+b <- hx$breaks[2]-hx$breaks[1]
+hx_f2 <- (n/(n-1)* hx_f(x)) * 1/((n-1)*b) # (n/(n-1)* hx_f(x))- 1/((n-1)*b)
 
 A <- min(x)-.05*diff(range(x)) 
 Z <- max(x)+.05*diff(range(x))
@@ -78,30 +80,34 @@ looCV_log_lik_7
 ```
 
 
-5. **Choosing** *nbr* **by leave-one-out Cross Validation (looCV)**. Consider now the set *seq(1,15)* as possible values for *nbr*, the number of intervals of the histogram. For each of them compute the leave-one-out log-likelihood function (*looCv_log_lik*) fir the corresponding histogram. Then plot the values of *looCv_log_lik* against the values of *nbr* and select the optimal value of *nbr* as that at which *looCv_log_lik* takes its maximum. Finally, plot the histogram of *x* using the optimal value of *nbr*
+5. **Choosing** *nbr* **by leave-one-out Cross Validation (looCV)**. Consider now the set *seq(1,15)* as possible values for *nbr*, the number of intervals of the histogram. For each of them compute the leave-one-out log-likelihood function (*looCv_log_lik*) for the corresponding histogram. Then plot the values of *looCv_log_lik* against the values of *nbr* and select the optimal value of *nbr* as that at which *looCv_log_lik* takes its maximum. Finally, plot the histogram of *x* using the optimal value of *nbr*
+
 ```{r}
 #sum of the product of the hx_f2 vector plot histograms for different number of breaks nbr
 
 log_liks = list()
 
+A <- min(x)-.05*diff(range(x)) 
+Z <- max(x)+.05*diff(range(x))
+n <- length(x)
+
 for (nbr in c(1:15)){
-  #A <- min(hx_f2)-.05*diff(range(hx_f2)) 
-  #Z <- max(hx_f2)+.05*diff(range(hx_f2))
-  hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1),freq=F, plot = FALSE)
+  hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1), plot = FALSE)
   hx_f_i <- stepfun(hx_i$breaks,c(0,hx_i$density,0))
-  n <- length(x)
   b <- hx_i$breaks[2]-hx_i$breaks[1]
-  hx_f2_i <- n/(n-1)*hx_f_i(x) - 1/((n-1)*b)
+  hx_f2_i <- (n/(n-1)* hx_f_i(x)) * 1/((n-1)*b) # 1/(n-1)*(n*hx_f_i(x) - (1/b))  #(n/(n-1)*hx_f_i(x)) - 1/((n-1)*b)
   print(min(hx_f2_i))
   
-  hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1),freq=F)
-  points(x, hx_f_i(x))
-  points(x, hx_f2_i, col='red')
+  #hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1),freq=F)
+  #points(x, hx_f_i(x))
+  #points(x, hx_f2_i, col='red')
 
-  looCV_log_lik <- sum(log(hx_f2_i))
-  log_liks <- append(log_liks, looCV_log_lik)
+  looCV_log_lik <- sum(log(hx_f2_i)) # TODO: Negative numbers produce NaNs
+  log_liks <- append(log_liks, looCV_log_lik) 
 }
-plot(seq(1, 15), log_liks)
+
+
+plot(seq(1, 15), log_liks, type = "l")
 nbr_opt <- which.max(log_liks)
 hist(x,breaks=seq(A,Z,length=nbr_opt+1),freq=F)
 
@@ -117,14 +123,14 @@ b_set <- seq((Z-A)/15, (Z-A), length=30)
 b_max_log_lik <- function(b_set, x){
   
   log_liks_b = list()
+  n <- length(x)
   
   for(b in b_set){
     hx <- hist(x, breaks=seq(A, Z+b, by=b), plot=F)
     
     # compute histogram estimator
     hx_f <- stepfun(hx$breaks,c(0,hx$density,0))
-    n <- length(x)
-    hx_f2 <- n/(n-1)*hx_f_i(x) - 1/((n-1)*b)
+    hx_f2 <- (n/(n-1)* hx_f_i(x)) * 1/((n-1)*b) # 1/(n-1)*(n*hx_f_i(x) - (1/b)) #(n/(n-1)*hx_f_i(x)) - 1/((n-1)*b)
     
     looCV_log_lik_b <- sum(log(hx_f2))
     log_liks_b <- append(log_liks, looCV_log_lik_b)
@@ -228,6 +234,7 @@ alpha <- c(3/4,1/4)
 x <- sim.mixt(n=n, k=2, mu=mu, sigma=sigma, alpha=alpha, gr=T)
 points(x,0*x,pch="|")
 ```
+
 ```{r}
 b_scott <- function(X){
   return(3.49 * sd(X) * length(X)**(-1/3))
@@ -251,7 +258,8 @@ plot(hx_s, freq = FALSE)
 
 # Kernel density estimator
 
-8.\[\hat{f}_{h,(-i)}(x_i) =  \frac{n}{n-1} \left( \hat{f}_{h}(x_i) -\frac{K(0)}{nh} \right)\]
+8.Consider the vector x of data you have generated before from the mixture of two normals. Use the relationship\[\hat{f}_{h,(-i)}(x_i) =  \frac{n}{n-1} \left( \hat{f}_{h}(x_i) -\frac{K(0)}{nh} \right)\] to select the value of **h** maximizing the leave-one-out log-likelihood function, and plot the corresponding
+kernel density estimator. NOTE: The following sentences converts the kernel density estimator obtained with the function *density* into a function that can be evaluated at any point of R or at a vector of real numbers:
 
 
 ```{r}
