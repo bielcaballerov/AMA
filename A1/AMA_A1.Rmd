@@ -105,7 +105,7 @@ for (nbr in c(1:15)){
   # Calculate the log-likelihood if hx_f2 is not zero
     looCV_log_lik <- sum(log(hx_f2_i))
   }
-  print(looCV_log_lik)
+  #print(paste("nbr", nbr,"->", looCV_log_lik))
   log_liks <- append(log_liks, looCV_log_lik) 
 }
 
@@ -114,6 +114,7 @@ nbr_opt <- which.max(log_liks)
 hist(x,breaks=seq(A,Z,length=nbr_opt+1),freq=F)
 
 ```
+In the range from 1 to 15, the leave-one-out log-likelihood achieves its highest value at nbr= 5 (We should mention that nbr=11 has also a nice score). The computed value is *-9.044528*, which is greather than the *-16.58432* previously calculated in exercise 4 with a fixed nbr=7.
 
 6. **Chossing** *b* **by looCV**. Let *b* be the common width of the bins of a histogram. Consider the set $seq((Z-A)/15, (Z-A)/1, length=30)$ as possible values for *b*. Select the value of *b* maximizing the leave-one-out log-likelihood function, and plot the corresponding histogram
 ```{r}
@@ -131,15 +132,21 @@ b_max_log_lik <- function(b_set, x){
     hx_f <- stepfun(hx$breaks,c(0,hx$density,0))
     hx_f2 <- (n/(n-1)* hx_f(x))- 1/((n-1)*b)
     hx_f2[abs(hx_f2) < 1e-05] <- 0
-    looCV_log_lik_b <- sum(log(hx_f2[hx_f2 > 0]))
+    
+    if (any(hx_f2 == 0)) {
+      looCV_log_lik_b <- -Inf
+    } else {
+    # Calculate the log-likelihood if hx_f2 is not zero
+      looCV_log_lik_b <- sum(log(hx_f2))
+    }
+    #looCV_log_lik_b <- sum(log(hx_f2))
     log_liks_b <- append(log_liks_b, looCV_log_lik_b)
     
   }
   
-  plot(x=seq(1,30),log_liks_b, type = "l", xlab="x", ylab="loo values")
+  plot(x=seq(1,30),log_liks_b, type = "p", xlab="x", ylab="loo values")
   b_opt <- which.max(log_liks_b)
   
-  print(b_opt)
   b <- b_set[b_opt]
   print(b)
   return(b)
@@ -151,6 +158,8 @@ hx <- hist(x, breaks=seq(A, Z+b, by=b), plot=F)
 plot(hx, freq = FALSE, main="Chossing 'b' by looCV")
 
 ```
+In this case we have a similar shape than in the previous exercise. Therefore, in practise, estimating the optimal binwidth *b* is equivalent to estimate the number of intervals *nbr*.
+
 7. Recycle the functions *graph.mixt* and *sim.mixt* defined at *density_estimation.Rmd* to generate n = 100 data from \[f(x)=(3/4)N(x;m=0,s=1)+(1/4)N(x;m=3/2,s=1/3)\] Let *b* be the bin width of a histogram estimator of f(x) using the generated data. Select the value of *b* maximizing the leave-one-out log-likelihood function, and plot the corresponding histogram. Compare with the results obtained using the Scott’s formula: \[b_{Scott} = 3.49St.Dev(X)_n^{-1/3}\].
 
 ```{r}
