@@ -265,6 +265,22 @@ kernel density estimator. NOTE: The following sentences converts the kernel dens
 ```{r}
 kx <- density(x)
 kx_f <- approxfun(x=kx$x, y=kx$y, method = 'linear', rule=2)
+
+n <- length(n)
+h_set <- seq(1, 15)
+
+log_liks_h = list()
+
+for (h in h_set){
+  kx_f2 <- (n/(n-1))*(kx_f(x)- 0.4/(n*h)). # K(0) = 0.4 ?
+  
+  looCV_log_lik_h <- sum(log(kx_f2))
+  log_liks_h <- append(log_liks, looCV_log_lik_h)
+}
+
+# plot kernel density estimator
+
+# TODO
 ```
 
 
