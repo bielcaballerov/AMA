@@ -1,7 +1,7 @@
 ---
 title: "Density Estimation"
 subtitle: "Bandwidht choice by leave-one-out maximum likelihood"
-author: "Caballero Vergés Biel, Menzenbach Svenja and Reyes Illescas Kleber Enrique"
+author: "Biel Caballero, Menzenbach Svenja and Reyes Illescas Kleber Enrique"
 date: "`r Sys.Date()`"
 output:
   pdf_document: default
@@ -62,8 +62,7 @@ points(x, hx_f(x))
 ```{r}
 n <- length(x)
 b <- hx$breaks[2]-hx$breaks[1]
-hx_f2 <- (n/(n-1)* hx_f(x))- 1/((n-1)*b) #(n/(n-1)* hx_f(x)) * 1/((n-1)*b) 
-hx_f2[abs(hx_f2) < 1e-05] <- 0
+hx_f2 <- (n/(n-1)* hx_f(x)) * 1/((n-1)*b) # (n/(n-1)* hx_f(x))- 1/((n-1)*b)
 
 A <- min(x)-.05*diff(range(x)) 
 Z <- max(x)+.05*diff(range(x))
@@ -76,12 +75,7 @@ points(x, hx_f2, col="red")
 
 4. Compute the leave-one-out log-likelihood function corresponding to the previous histogram, at which *nbr=7* has been used
 ```{r}
-if (any(hx_f2 == 0)) {
-  looCV_log_lik_7 <- -Inf
-} else {
-  # Calculate the log-likelihood if hx_f2 is not zero
-  looCV_log_lik_7 <- sum(log(hx_f2))
-}
+looCV_log_lik_7 <- sum(log(hx_f2))
 looCV_log_lik_7
 ```
 
@@ -101,31 +95,30 @@ for (nbr in c(1:15)){
   hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1), plot = FALSE)
   hx_f_i <- stepfun(hx_i$breaks,c(0,hx_i$density,0))
   b <- hx_i$breaks[2]-hx_i$breaks[1]
-  hx_f2_i <- (n/(n-1)* hx_f_i(x)) - 1/((n-1)*b) # 1/(n-1)*(n*hx_f_i(x) - (1/b))  #(n/(n-1)*hx_f_i(x)) - 1/((n-1)*b)
-  hx_f2_i[abs(hx_f2_i) < 1e-05] <- 0
+  hx_f2_i <- (n/(n-1)* hx_f_i(x)) * 1/((n-1)*b) # 1/(n-1)*(n*hx_f_i(x) - (1/b))  #(n/(n-1)*hx_f_i(x)) - 1/((n-1)*b)
   print(min(hx_f2_i))
   
   #hx_i <- hist(x,breaks=seq(A,Z,length=nbr+1),freq=F)
   #points(x, hx_f_i(x))
   #points(x, hx_f2_i, col='red')
-  if (any(hx_f2_i == 0)) {
-    looCV_log_lik <- -Inf
-  } else {
-  # Calculate the log-likelihood if hx_f2 is not zero
-    looCV_log_lik <- sum(log(hx_f2_i))
-  }
+
+  looCV_log_lik <- sum(log(hx_f2_i)) # TODO: Negative numbers produce NaNs
   log_liks <- append(log_liks, looCV_log_lik) 
 }
 
-plot(seq(1, 15), log_liks, type = "p")
+
+plot(seq(1, 15), log_liks, type = "l")
 nbr_opt <- which.max(log_liks)
 hist(x,breaks=seq(A,Z,length=nbr_opt+1),freq=F)
+
+# TODO: - avoid production of NaNs, 
+#       - is it a problem that 'freq' is not used for some cases?
 
 ```
 
 6. **Chossing** *b* **by looCV**. Let *b* be the common width of the bins of a histogram. Consider the set $seq((Z-A)/15, (Z-A)/1, length=30)$ as possible values for *b*. Select the value of *b* maximizing the leave-one-out log-likelihood function, and plot the corresponding histogram
 ```{r}
-b_set <- seq((Z-A)/15, (Z-A)/1, length=30)
+b_set <- seq((Z-A)/15, (Z-A), length=30)
 
 b_max_log_lik <- function(b_set, x){
   
@@ -137,29 +130,24 @@ b_max_log_lik <- function(b_set, x){
     
     # compute histogram estimator
     hx_f <- stepfun(hx$breaks,c(0,hx$density,0))
-    hx_f2 <- (n/(n-1)* hx_f(x))- 1/((n-1)*b) #(n/(n-1)* hx_f_i(x)) * 1/((n-1)*b) # 1/(n-1)*(n*hx_f_i(x) - (1/b)) #(n/(n-1)*hx_f_i(x)) - 1/((n-1)*b)
-    hx_f2[abs(hx_f2) < 1e-05] <- 0
-    looCV_log_lik_b <- sum(log(hx_f2[hx_f2 > 0]))
-    log_liks_b <- append(log_liks_b, looCV_log_lik_b)
+    hx_f2 <- (n/(n-1)* hx_f_i(x)) * 1/((n-1)*b) # 1/(n-1)*(n*hx_f_i(x) - (1/b)) #(n/(n-1)*hx_f_i(x)) - 1/((n-1)*b)
+    
+    looCV_log_lik_b <- sum(log(hx_f2))
+    log_liks_b <- append(log_liks, looCV_log_lik_b)
     
   }
   
-  
-  plot(x=seq(1,30),log_liks_b, type = "p" )
   b_opt <- which.max(log_liks_b)
-  
-  print(b_opt)
   b <- b_set[b_opt]
-  print(b)
   return(b)
-}
-
+y}
 
 b <- b_max_log_lik(b_set, x)
 
-hx <- hist(x, breaks=seq(A, Z, by=b), plot=F)
+hx <- hist(x, breaks=seq(A, Z+b, by=b), plot=F)
 plot(hx, freq = FALSE)
 
+# TODO: avoid NaNs
 ```
 7. Recycle the functions *graph.mixt* and *sim.mixt* defined at *density_estimation.Rmd* to generate n = 100 data from \[f(x)=(3/4)N(x;m=0,s=1)+(1/4)N(x;m=3/2,s=1/3)\] Let *b* be the bin width of a histogram estimator of f(x) using the generated data. Select the value of *b* maximizing the leave-one-out log-likelihood function, and plot the corresponding histogram. Compare with the results obtained using the Scott’s formula: \[b_{Scott} = 3.49St.Dev(X)_n^{-1/3}\].
 
@@ -262,6 +250,8 @@ plot(hx, freq = FALSE)
 b_s <- b_scott(x)
 hx_s <- hist(x, breaks=seq(A, Z+b_s, by=b_s), plot=F)
 plot(hx_s, freq = FALSE)
+
+
 ```
 
 
@@ -276,23 +266,21 @@ kernel density estimator. NOTE: The following sentences converts the kernel dens
 kx <- density(x)
 kx_f <- approxfun(x=kx$x, y=kx$y, method = 'linear', rule=2)
 
-n <- length(x)
-h_set <- seq(0.05, 0.5, by=0.01)
+n <- length(n)
+h_set <- seq(1, 15)
 
 log_liks_h = list()
 
 for (h in h_set){
-  kx_f2 <- (n/(n-1)) * (kx_f(x)- ((1/sqrt(2*pi))/(n*h))) # K(0) = 1/sqrt(2*pi)
+  kx_f2 <- (n/(n-1))*(kx_f(x)- 0.4/(n*h)). # K(0) = 0.4 ?
+  
   looCV_log_lik_h <- sum(log(kx_f2))
-  log_liks_h <- append(log_liks_h, looCV_log_lik_h)
+  log_liks_h <- append(log_liks, looCV_log_lik_h)
 }
 
 # plot kernel density estimator
 
-
-plot(seq(0.05, 0.5, by=0.01), log_liks_h, type = "l")
-nbr_opt <- h_set[which.max(log_liks_h)]
-hist(x,breaks=seq(A,Z,length=nbr_opt+1),freq=F)
+# TODO
 ```
 
 
