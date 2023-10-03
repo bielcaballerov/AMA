@@ -1,0 +1,66 @@
+---
+title: "Density Estimation 2"
+subtitle: "GMM. DBSCAN"
+author: "Caballero Vergés Biel, Menzenbach Svenja and Reyes Illescas Kleber Enrique"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading libraries, include=FALSE}
+library(mclust)
+library(sm)
+library(fpc)
+library(dbscan)
+```
+
+```{r loading data}
+load("BikeDay.Rdata")
+X <- as.matrix(day[day$yr==1,c(10,14)])
+#pairs(X)
+```
+
+# Questions
+
+## 1. 
+```{r question 1}
+#?mclust
+
+#GMM_3 <- Mclust(X,G=3)
+```
+
+## 2. 
+```{r question 2}
+#?sm.density
+```
+
+## 3. 
+```{r question 3}
+
+```
+
+## 4. 
+```{r question 4}
+#?fpc
+```
+
+## 5. 
+```{r question 5}
+
+```
+
+## 6. 
+```{r question 6}
+#?fpc::dbscan  / ?dbscan::dbscan
+```
+
+## 7. 
+```{r question 7}
+
+```
+
