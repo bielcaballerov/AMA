@@ -29,19 +29,37 @@ X <- as.matrix(day[day$yr==1,c(10,14)])
 
 ## 1. 
 ```{r question 1}
-#?mclust
-
-#GMM_3 <- Mclust(X,G=3)
+GMM_BIC <- Mclust(X,G=2:6, modelNames="VVV")
+summary(GMM_BIC, parameters=F)
 ```
+```{r question 1 - plots}
+
+plot(GMM_BIC, what="BIC")
+plot(GMM_BIC, what="classification")
+plot(GMM_BIC, what="uncertainty")
+plot(GMM_BIC, what="density")
+```
+
 
 ## 2. 
 ```{r question 2}
 #?sm.density
+
+a = 0.25
+
+plot(X, col=8)
+sm.density(X,h=a*c(sd(day$temp), sd(day$casual)), 
+           display="slice",col=2, props=c(25,50,75,95), add=TRUE)
+
+# default props -> c(75,50,25)
 ```
 
 ## 3. 
 ```{r question 3}
 
+plot(X, col=8)
+
+a = 0.4
 ```
 
 ## 4. 
