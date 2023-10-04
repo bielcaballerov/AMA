@@ -77,20 +77,22 @@ for (j in 1:k){
 ## 4. 
 ```{r question 4}
 #?fpc
-cmnbhat <- mergenormals(X, summary(GMM_BIC, X), method="bhat")
+cm <- mclustBIC(X,G=2:6,modelNames="VVV")
+sum <- summary(cm, X)
+cmnbhat <- mergenormals(X, sum, method="bhat")
 
-plot(cmnbhat$clusteringno)
+plot(X, col=cmnbhat$clustering)
 
 ```
 
 ## 5. 
 ```{r question 5}
-k_new <- cmnbhat$clusternumbers
+k_new <- length(cmnbhat$clusternumbers)
 clust_merged.ind <- cmnbhat$clustering
 
 #plot(X, col=8)
 
-plot(X,col=clust.ind)
+plot(X,col=clust_merged.ind)
 
 a = 0.4
 
