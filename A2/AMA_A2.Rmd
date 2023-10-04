@@ -57,9 +57,21 @@ sm.density(X,h=a*c(sd(day$temp), sd(day$casual)),
 ## 3. 
 ```{r question 3}
 
-plot(X, col=8)
+k <- GMM_BIC$G
+clust.ind <- GMM_BIC$classification
+
+#plot(X, col=8)
+
+plot(X,col=clust.ind)
 
 a = 0.4
+
+for (j in 1:k){
+  cl.j <- (clust.ind==j)
+  sm.density(X[cl.j,],h=a*c(sd(day$temp), sd(day$casual)), 
+             display="slice",props=c(75),
+             col=j, cex=4, add=TRUE)
+}
 ```
 
 ## 4. 
