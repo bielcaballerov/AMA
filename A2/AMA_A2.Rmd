@@ -107,10 +107,39 @@ for (j in 1:k_new){
 ## 6. 
 ```{r question 6}
 #?fpc::dbscan  / ?dbscan::dbscan
+Xs <- scale(X)
+
+eps_values <- c(0.25, 0.5)
+minPts_values <- c(10, 15, 20)
+
+for (eps in eps_values) {
+  for (minPts in minPts_values) {
+    
+    dbscan_result <- dbscan(Xs, eps = eps, MinPts = minPts)
+    print(dbscan_result)
+  }
+}
+
+#Cross table
+favorite_eps <- 0.5
+favorite_minPts <- 10
+dbscan_result <- dbscan(Xs, eps = favorite_eps, MinPts = favorite_minPts)
+
+cluster_assignments <- dbscan_result$cluster
+
+comparison_data <- data.frame(
+  DBSCAN = cluster_assignments,
+  mergenormals = cmnbhat$clustering
+)
+
+cross_table <- table(comparison_data)
+
+print(cross_table)
+
 ```
 
 ## 7. 
 ```{r question 7}
-
+#Explanation (Comment all group)
 ```
 
