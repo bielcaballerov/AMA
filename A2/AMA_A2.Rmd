@@ -112,18 +112,27 @@ Xs <- scale(X)
 eps_values <- c(0.25, 0.5)
 minPts_values <- c(10, 15, 20)
 
+
 for (eps in eps_values) {
   for (minPts in minPts_values) {
     
-    dbscan_result <- dbscan(Xs, eps = eps, MinPts = minPts)
+    dbscan_result <- fpc::dbscan(Xs, eps = eps, MinPts = minPts, showplot = 0)
+    plot(dbscan_result, Xs, main=paste("dbscan; epsilon=",eps,",minPts=",minPts),
+          xlab="x",ylab="y",asp=1)
     print(dbscan_result)
   }
 }
+```
+
+```{r question 6 2}
 
 #Cross table
 favorite_eps <- 0.5
 favorite_minPts <- 10
-dbscan_result <- dbscan(Xs, eps = favorite_eps, MinPts = favorite_minPts)
+dbscan_result <- dbscan::dbscan(Xs, eps = favorite_eps, minPts = favorite_minPts)
+
+plot(dbscan_result, Xs, main=paste("dbscan; epsilon=",eps,",minPts=",minPts),
+      xlab="x",ylab="y",asp=1)
 
 cluster_assignments <- dbscan_result$cluster
 
