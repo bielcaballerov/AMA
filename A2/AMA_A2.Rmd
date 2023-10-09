@@ -40,6 +40,7 @@ plot(GMM_BIC, what="uncertainty")
 plot(GMM_BIC, what="density")
 ```
 
+According to BIC the best number of clusters is two: k_{BIC} = 2.
 
 ## 2. 
 ```{r question 2}
@@ -53,14 +54,13 @@ sm.density(X,h=a*c(sd(day$temp), sd(day$casual)),
 
 # default props -> c(75,50,25)
 ```
+The previous density plot has perfect ellipsoid contour lines. This lines are approximately ellipsoid as well but less smooth. The distribution is very similar but this plot has one maximum more in the lower right cluster.
 
 ## 3. 
 ```{r question 3}
 
 k <- GMM_BIC$G
 clust.ind <- GMM_BIC$classification
-
-#plot(X, col=8)
 
 plot(X,col=clust.ind)
 
@@ -150,5 +150,9 @@ print(cross_table)
 ## 7. 
 ```{r question 7}
 #Explanation (Comment all group)
+
+#Low/high temperature
+#Maybe weekend?
+
 ```
 
