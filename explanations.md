@@ -1,0 +1,4 @@
+6 - 
+6 2 - 
+7 - We plotted the data separated by weekday (red) and weekend (black). Here we can observe a similar separation as the plots with two clusters (mergenormals and DBSCAN). Hence it is apparent that the clusters are coming from the weekday/weekend separation. This is reasonable since we are looking at the data of casual users. Thos are more likely to use the bikes on weekends than the registered users. So at the weekend when people are going on trips, the number of casual users increases.
+  But we can also see that the data is not perfectly separated. There are some points of the weekend in the weekday cluster. This happens mainly on the left side of the plot, at lower temperature. So at low temperature there are many points with a low number of casual users. Because the denisty is higher there, Mclust found a third cluster there. However, regarding the weekday/weekend separation, the separartion int two clusters is more reasonable.
