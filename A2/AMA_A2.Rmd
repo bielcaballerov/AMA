@@ -17,21 +17,21 @@ library(mclust)
 library(sm)
 library(fpc)
 library(dbscan)
+library(corrplot)
 ```
 
 ```{r loading data}
 load("BikeDay.Rdata")
 X <- as.matrix(day[day$yr==1,c(10,14)])
-#pairs(X)
 ```
 
 # Questions
-
 ## 1. 
-```{r question 1}
+```{r question 1, message=FALSE}
 GMM_BIC <- Mclust(X,G=2:6, modelNames="VVV")
 summary(GMM_BIC, parameters=F)
 ```
+
 ```{r question 1 - plots}
 
 plot(GMM_BIC, what="BIC")
@@ -40,19 +40,17 @@ plot(GMM_BIC, what="uncertainty")
 plot(GMM_BIC, what="density")
 ```
 
-According to BIC the best number of clusters is two: k_{BIC} = 2.
+According to BIC, the best number of clusters is 3. It is the one that minimizes the BIC among the range of different k values we have given.
+
+We can highlight the fact in the uncertainty plot, we have several points that are very large. This implies that the classification might not be accurate.
 
 ## 2. 
 ```{r question 2}
-#?sm.density
-
 a = 0.25
 
 plot(X, col=8)
 sm.density(X,h=a*c(sd(day$temp), sd(day$casual)), 
            display="slice",col=2, props=c(25,50,75,95), add=TRUE)
-
-# default props -> c(75,50,25)
 ```
 The previous density plot has perfect ellipsoid contour lines. This lines are approximately ellipsoid as well but less smooth. The distribution is very similar but this plot has one maximum more in the lower right cluster.
 
@@ -62,7 +60,7 @@ The previous density plot has perfect ellipsoid contour lines. This lines are ap
 k <- GMM_BIC$G
 clust.ind <- GMM_BIC$classification
 
-plot(X,col=clust.ind)
+plot(X,col=1+clust.ind)
 
 a = 0.4
 
@@ -70,29 +68,26 @@ for (j in 1:k){
   cl.j <- (clust.ind==j)
   sm.density(X[cl.j,],h=a*c(sd(day$temp), sd(day$casual)), 
              display="slice",props=c(75),
-             col=j, cex=4, add=TRUE)
+             col=1+j, cex=4, add=TRUE)
 }
 ```
 
 ## 4. 
-```{r question 4}
-#?fpc
+```{r question 4, message=FALSE}
 cm <- mclustBIC(X,G=2:6,modelNames="VVV")
-sum <- summary(cm, X)
-cmnbhat <- mergenormals(X, sum, method="bhat")
+cmnbhat <- mergenormals(X, summary(cm, X), method="bhat")
 
-plot(X, col=cmnbhat$clustering)
+plot(X, col=2+cmnbhat$clustering)
 
 ```
+In the previous exercise, we have the three different clusters, each with its respective density, in a single plot. Now, we have used mergenormal function in order to check if it's possible to merge some components. As we can see, effectively, the 2 lower clusters were merge to create a large one (in green).
 
 ## 5. 
 ```{r question 5}
 k_new <- length(cmnbhat$clusternumbers)
 clust_merged.ind <- cmnbhat$clustering
 
-#plot(X, col=8)
-
-plot(X,col=clust_merged.ind)
+plot(X,col=2+clust_merged.ind)
 
 a = 0.4
 
@@ -100,13 +95,13 @@ for (j in 1:k_new){
   cl.j <- (clust_merged.ind==j)
   sm.density(X[cl.j,],h=a*c(sd(day$temp), sd(day$casual)), 
              display="slice",props=c(75),
-             col=j, cex=4, add=TRUE)
+             col=2+j, cex=4, add=TRUE)
 }
 ```
 
+
 ## 6. 
 ```{r question 6}
-#?fpc::dbscan  / ?dbscan::dbscan
 Xs <- scale(X)
 
 eps_values <- c(0.25, 0.5)
@@ -123,6 +118,7 @@ for (eps in eps_values) {
   }
 }
 ```
+The resulting plots vary in the number of clusters and number of outliers, when trying different values for epsilon and for minimum points. Out of all, the combination of the tuning parameters that we consider the best one is the one having epsilon = 0.5 and minPts = 10. The reason why is that two clear clusters can be seen and out of the combinations is the one having the least amount of outliers, that is 7 outliers.
 
 ```{r question 6 2}
 
@@ -131,7 +127,7 @@ favorite_eps <- 0.5
 favorite_minPts <- 10
 dbscan_result <- dbscan::dbscan(Xs, eps = favorite_eps, minPts = favorite_minPts)
 
-plot(dbscan_result, Xs, main=paste("dbscan; epsilon=",eps,",minPts=",minPts),
+plot(dbscan_result, Xs, main=paste("dbscan; epsilon=",eps,",minPts=",favorite_minPts),
       xlab="x",ylab="y",asp=1)
 
 cluster_assignments <- dbscan_result$cluster
@@ -146,13 +142,28 @@ cross_table <- table(comparison_data)
 print(cross_table)
 
 ```
+Comparing the DBSCAN clustering with our favorite combination of tuning parameters with the results of mergenormals, we can see that the results are almost the same. There are only 3 points where the results from DBSCAN and mergenormals differ, because these 3 points correspong to cluster 1 for DBSCAN and to cluster 2 for mergenormals. This is the only difference, a part from the appearence of outliers.
 
 ## 7. 
 ```{r question 7}
-#Explanation (Comment all group)
 
-#Low/high temperature
-#Maybe weekend?
+weekdays <- as.matrix(day[day$yr==1,c(8)])
+plot(X, col=1+weekdays)
 
 ```
+We plotted the data separated by weekday (red) and weekend (black). Here we can observe a similar separation as the plots with two clusters (mergenormals and DBSCAN). Hence it is apparent that the clusters are coming from the weekday/weekend separation. This is reasonable since we are looking at the data of casual users. Those are more likely to use the bikes on weekends than the registered users. So at the weekend when people are going on trips, the number of casual users increases.
+
+But we can also see that the data is not perfectly separated. There are some points of the weekend in the weekday cluster. This happens mainly on the left side of the plot, at lower temperature. So at low temperature there are many points with a low number of casual users. Because the density is higher there, Mclust found a third cluster there. However, regarding the weekday/weekend separation, the separartion into two clusters is more reasonable.
+
+
+```{r question 7.2}
+
+M <- cor(as.matrix(day[day$yr==1,c(3,5,6,7,8,9,10,12,13,14,15,16)]), method="spearman")
+
+corrplot(M, type="lower", diag = FALSE)
+```
+
+To reinforce our conclusions, we have also checked if there is another variable with a strong correlation (using spearman, cause we assume this variables are non-normally distributed) with **casual**. In the correlation plot above, we can see that the variables **workingday** and **temp** show the highest correlations with the **casual** variable. These are the other two variables we are considering for our final interpretation.
+
+
 
