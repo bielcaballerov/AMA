@@ -60,29 +60,17 @@ X <- cbind(x, y, z)
 N <- dim(X)[1]
 
 # create arrays for loo
-X_loo <- array(0, dim=c(N-1, 3, N))
 pt_loo <- array(0, dim=c(1, 3, N))
-
-for(n in N){
-  pt_loo[,,n] <- X[n,]
-  X_copy <- X
-  X_loo[,,n] <- X_copy[-n,]
-}
 
 # calculate avg sum-of-squared distances of loo proncipal curves for each df 
 avg_dists <- array(0, dim=c(1,length(df)))
 
-print(X_loo)
-print(pt_loo)
-
 for(i in df){
   sum_dist <- 0
   for (n in 1:N){
-    fit_in <- principal_curve(X_loo[, ,n], df=i)
-    #print(pt_loo[, ,n])
-    #print(matrix(pt_loo[, ,n],ncol=3,byrow=TRUE))
-    loo.proj <- project_to_curve(matrix(pt_loo[, ,n],ncol=3,byrow=TRUE), fit_in$s[fit_in$ord,])
-    #print(loo.proj$dist)
+    X_copy <- X
+    fit_in <- principal_curve(X_copy[-n,], df=i)
+    loo.proj <- project_to_curve(matrix(X[n,],ncol=3,byrow=TRUE), fit_in$s[fit_in$ord,])
     sum_dist <- sum_dist + loo.proj$dist
   }
   avg_dists[i-1] <- sum_dist/N
@@ -93,7 +81,7 @@ for(i in df){
 df_opt_idx <- which.min(avg_dists)
 df_opt <- df[df_opt_idx]
 
-print(avg_dists)
+plot(df, avg_dists)
 print(df_opt)
 
 #project_to_curve
