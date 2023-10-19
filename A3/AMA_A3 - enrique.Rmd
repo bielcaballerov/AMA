@@ -1,0 +1,238 @@
+---
+title: "Non-linear dimensionality reduction"
+subtitle: "Principal curves, local MDS, Isomap and t-SNE"
+author: "Caballero Vergés Biel, Menzenbach Svenja and Reyes Illescas Kleber Enrique"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading libraries, include=FALSE}
+library(plot3D)
+library(stops)
+library(Rtsne)
+```
+
+
+# PART A. Principal Curves
+
+## 1.
+```{r question 1, echo=FALSE}
+t <- seq(-1.5*pi,1.5*pi,l=100)
+R<- 1
+n<-75
+sd.eps <- .15
+
+set.seed(1)
+y <- R*sign(t) - R*sign(t)*cos(t/R)
+x <- -R*sin(t/R)
+z <- (y/(2*R))^2
+rt <- sort(runif(n)*3*pi - 1.5*pi)
+eps <- rnorm(n)*sd.eps
+ry <- R*sign(rt) - (R+eps)*sign(rt)*cos(rt/R)
+rx <- -(R+eps)*sin(rt/R)
+rz <- (ry/(2*R))^2 + runif(n,min=-2*sd.eps,max=2*sd.eps)
+XYZ <- cbind(rx,ry,rz)
+
+
+lines3D(x,y,z,colvar = NULL, 
+         phi = 20, theta = 60, r =sqrt(3), d =3, scale=FALSE,
+         col=2,lwd=4,as=1,
+         xlim=range(rx),ylim=range(ry),zlim=range(rz))
+points3D(rx,ry,rz,col=4,pch=19,cex=.6,add=TRUE)
+```
+
+### Questions
+
+
+  a.
+```{r 1 - question a}
+library(princurve)
+
+# function to determine the average sum-of-squared distances of loo principal curves by a given number of df
+loo_proj_avg_dist <- function(X, df){
+  N <- dim(X)[1]
+  sum_dist <- 0
+  for (n in 1:N){
+    X_copy <- X
+    fit_in <- principal_curve(X_copy[-n,], df=df)
+    loo.proj <- project_to_curve(matrix(X[n,],ncol=3,byrow=TRUE), fit_in$s[fit_in$ord,])
+    sum_dist <- sum_dist + loo.proj$dist
+  }
+  return(sum_dist/N)
+  
+}
+
+
+df <- seq(2,8, by=1)
+
+X <- cbind(rx, ry, rz)  # TODO: #cbind(rx, ry, rz) or cbind(x, y, z)?
+
+
+# calculate avg sum-of-squared distances of loo principal curves for each df 
+avg_dists <- array(0, dim=c(1,length(df)))
+
+for(i in df){
+  avg_dists[i-1] <- loo_proj_avg_dist(X, df=i)
+}
+
+
+# determine optimal df
+df_opt_idx <- which.min(avg_dists)
+df_opt <- df[df_opt_idx]
+
+plot(df, avg_dists)
+print(df_opt)
+print(avg_dists[df_opt_idx])
+```
+  
+  The optimal number of degree of freedom we obtain is 6 as this minimizes the average distance of the leave one out principal curves.
+  
+  
+  b.
+```{r 1 - question b}
+# Give a graphical representation of the principal curve output for the optimal df and comment on the obtained results.
+
+fit <- principal_curve(X, df=df_opt)
+lines3D(fit$s[,1], fit$s[,2], fit$s[,3], colvar=NULL,
+         phi = 20, theta = 60, r =sqrt(3), d =3, scale=FALSE,
+         col=3,lwd=4,as=1,
+         xlim=range(rx),ylim=range(ry),zlim=range(rz))
+lines3D(x,y,z,colvar = NULL, 
+         phi = 20, theta = 60, r =sqrt(3), d =3, scale=FALSE,
+         col=2,lwd=4,as=1,
+         xlim=range(rx),ylim=range(ry),zlim=range(rz), add=TRUE)
+points3D(rx,ry,rz,col=4,pch=19,cex=.6,add=TRUE)
+```
+
+The obtained principal curve (green) with df=6 is similar to the original curve. It represents the data quite well.
+
+  c.
+```{r 1 - question c}
+
+avg_dist_50 <- loo_proj_avg_dist(X, df=50)
+print(avg_dist_50)
+```  
+  
+* Before fitting the principal curve with df=50 and based only on the leave-one-out cross-validation error values, what value for df do you think that is better, the previous optimal one or df=50?
+
+Based on the leave-one-out cross-validation error values df=50 is better than the previous optimal one (0.03939495 <  0.1077978).
+
+    
+* Fit now the principal curve with df=50 and plot the fitted curve in the 3D scatterplot of the original points.
+Now, what value of df do you prefer?
+
+```{r}
+fit <- principal_curve(X, df=50)
+lines3D(fit$s[,1], fit$s[,2], fit$s[,3], colvar=NULL,
+         phi = 20, theta = 60, r =sqrt(3), d =3, scale=FALSE,
+         col=3,lwd=4,as=1,
+         xlim=range(rx),ylim=range(ry),zlim=range(rz))
+lines3D(x,y,z,colvar = NULL, 
+         phi = 20, theta = 60, r =sqrt(3), d =3, scale=FALSE,
+         col=2,lwd=4,as=1,
+         xlim=range(rx),ylim=range(ry),zlim=range(rz), add=TRUE)
+points3D(rx,ry,rz,col=4,pch=19,cex=.6,add=TRUE)
+```
+
+I prefer the previous obtained optimal value here, because df=50 causes severe overfitting and hence does not generalize well to unseen data points. 
+
+
+* The overfitting with df=50 is clear. Nevertheless leave-one-out cross-validation has not been able to detect this fact. Why do you think that df=50 is given a so good value of leave-one-out cross-validation error? 
+
+The principal curve with df=50 is very close to the datapoints. So when projecting the points onto the curve the value is close to zero except for the left out one. However, this one higher distance is less than the sum of distances for df=6. So the curves seems better even though it just fits the data well that were used to obtain the principal curve.
+
+
+
+# PART B. Local MDS, ISOMAP and t-SNE
+
+```{r PART B}
+# ploting 1 digit
+plot.zip <- function(x,use.first=FALSE,...){
+  x<-as.numeric(x)
+  if (use.first){
+    x.mat <- matrix(x,16,16)
+  }else{
+    x.mat <- matrix(x[-1],16,16)
+  }
+  image(1:16,1:16,x.mat[,16:1],
+        col=gray(seq(1,0,l=12)),...)
+  invisible(
+    if (!use.first){
+      title(x[1])
+    }else{
+    }
+  )  
+  #col=gray(seq(1,0,l=2)))
+}
+```
+
+
+## 2. 
+
+```{r PART B reading data}
+zip.train <- read.table("zip.train")
+zip.train.0 <- zip.train[zip.train[1] == 0, -1]
+
+
+plot.zip(zip.train.0[1,], use.first=TRUE) # plotting the first zero
+```
+
+```{r PART B-2 a}
+
+dist.zip.0 <- dist(zip.train.0)
+n <- dim(dist.zip.0)[1]
+
+k <- 5
+tau <- .05
+q<-2 # 2-dim config
+
+conf0 <- stats::cmdscale(dist.zip.0, k=q)
+
+lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 500)
+conf.lmds.S.res <- lmds.S.res$conf
+
+```
+```{r PART B-2 a2}
+op <- par(mfrow=c(2,1))
+plot(conf.lmds.S.res,as=1, main=paste0("Local MDS, k=",k,", tau=",tau))
+text(conf.lmds.S.res[,1],conf.lmds.S.res[,2],1:n,pos=3)
+#
+plot(conf.lmds.S.res[,1],rt)
+par(op)
+```
+
+```{r PART B-2 b}
+
+```
+
+```{r PART B-2 c}
+
+```
+
+## 3.
+```{r PART B-3}
+
+```
+
+
+## 4.
+```{r PART B-4}
+
+```
+
+
+## 5.
+```{r PART B-5}
+
+
+```
+
+
+
+
