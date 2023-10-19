@@ -194,17 +194,15 @@ q<-2 # 2-dim config
 
 conf0 <- stats::cmdscale(dist.zip.0, k=q)
 
-lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 500)
+lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 50)
 conf.lmds.S.res <- lmds.S.res$conf
 
 ```
+
 ```{r PART B-2 a2}
-op <- par(mfrow=c(2,1))
 plot(conf.lmds.S.res,as=1, main=paste0("Local MDS, k=",k,", tau=",tau))
-text(conf.lmds.S.res[,1],conf.lmds.S.res[,2],1:n,pos=3)
-#
-plot(conf.lmds.S.res[,1],rt)
-par(op)
+#text(conf.lmds.S.res[,1],conf.lmds.S.res[,2],1:n,pos=3)
+
 ```
 
 ```{r PART B-2 b}
