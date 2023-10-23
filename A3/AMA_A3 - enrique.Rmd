@@ -185,8 +185,9 @@ plot.zip(zip.train.0[1,], use.first=TRUE) # plotting the first zero
 
 ```{r PART B-2 a}
 
+row.names(zip.train.0) <- NULL
+
 dist.zip.0 <- dist(zip.train.0)
-n <- dim(dist.zip.0)[1]
 
 k <- 5
 tau <- .05
@@ -194,7 +195,7 @@ q<-2 # 2-dim config
 
 conf0 <- stats::cmdscale(dist.zip.0, k=q)
 
-if (file.exists("lmds1.RData")) {
+if (!file.exists("lmds1.RData")) {
   lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 1000)
 } else {
   load("lmds1.RData")
@@ -211,17 +212,59 @@ if (!file.exists("lmds1.RData")) {
 ```
 
 ```{r PART B-2 a2}
-plot(conf.lmds.S.res,as=1, main=paste0("Local MDS, k=",k,", tau=",tau))
-#text(conf.lmds.S.res[,1],conf.lmds.S.res[,2],1:n,pos=3)
+plot(conf.lmds.S.res, main=paste0("Local MDS, k=",k,", tau=",tau))
 
 ```
+We've selected 9 points that tries to cover the variability of the data, this points are marked in red and each point has assigned a number in order to recognized each point with its representation using the *plot.zip* function.
+
+```{r PART B-2 b}
+#filt <- as.data.frame(conf.lmds.S.res)
+#filt2 <- subset(filt, V1 > 40 & V1 < 55 & V2 < -7 & V2 > -14)
+
+selected.points <- c(443, 575, 474, 291, 905, 731, 644, 242, 201)
+aux <- conf.lmds.S.res[-selected.points,]
+aux2 <- conf.lmds.S.res[selected.points,]
+
+plot(aux, main=paste0("Local MDS, k=",k,", tau=",tau), col=8)
+points(aux2, pch = 16, col=2)
+text(aux2[,1],aux2[,2],1:9, pos=3, col=2, font = 2, cex = 1.2)
+```
+
+We can notice 2 patterns in the printed zeros below. The first one (the y-axis) is related to thickness of the stroke, positive values are thicker (the higher the value, the higher the stroke) and viceversa (the lower the value, the lower the stroke). On the oher hand, the x-axis could be related to the roundness of the number (negative values are like an oval, positive values are like a circle). Furthermore, it also seems that positive values in x tends to have unfinished strokes, like fast writing.
+
 
 ```{r PART B-2 b}
 
+for (i in 1:length(selected.points)) {
+  index <- selected.points[i]
+  plot.zip(zip.train.0[index,], use.first=TRUE)
+  title(i)
+}
+
 ```
+
 
 ```{r PART B-2 c}
 
+q <- 2
+Kp <- 10
+
+K <- c(5,10,15)
+Tau <- c(.1,.5,1)
+
+LC <- matrix(0,nrow=length(K),ncol=length(Tau))
+lmds.k.tau <- array(vector("list",1),dim=dim(LC))
+
+for (i in 1:length(K)){
+  for (j in 1:length(tau)){
+    
+  }
+  
+}
+
+
+#lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 1000)
+#conf.lmds.S.res <- lmds.S.res$conf
 ```
 
 ## 3.
