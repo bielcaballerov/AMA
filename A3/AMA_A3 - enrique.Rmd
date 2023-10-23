@@ -194,9 +194,20 @@ q<-2 # 2-dim config
 
 conf0 <- stats::cmdscale(dist.zip.0, k=q)
 
-lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 50)
+if (file.exists("lmds1.RData")) {
+  lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 1000)
+} else {
+  load("lmds1.RData")
+}
+
 conf.lmds.S.res <- lmds.S.res$conf
 
+```
+
+```{r PART B-2 a store, include=FALSE}
+if (!file.exists("lmds1.RData")) {
+  save(lmds.S.res, file="lmds1.RData")
+}
 ```
 
 ```{r PART B-2 a2}
