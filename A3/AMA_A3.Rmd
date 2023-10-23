@@ -149,9 +149,10 @@ The principal curve with df=50 is very close to the datapoints. So when projecti
 
 
 
+\newpage
 # PART B. Local MDS, ISOMAP and t-SNE
 
-```{r PART B}
+```{r PART B, include=FALSE}
 # ploting 1 digit
 plot.zip <- function(x,use.first=FALSE,...){
   x<-as.numeric(x)
@@ -173,19 +174,155 @@ plot.zip <- function(x,use.first=FALSE,...){
 ```
 
 
-## 2. 
+## 2. Local MDS for ZERO digits
 
 ```{r PART B reading data}
 zip.train <- read.table("zip.train")
-zip.train.0 <- zip.train[zip.train[1] == 0,]
-
-
-plot.zip(zip.train.0[1,]) # plotting the first zero
+zip.train.0 <- zip.train[zip.train[1] == 0, -1]
 ```
 
-```{r PART B-2}
+```{r PART B-2 a}
+row.names(zip.train.0) <- NULL
+dist.zip.0 <- dist(zip.train.0)
+
+k <- 5
+tau <- .05
+q<-2 # 2-dim config
+
+conf0 <- stats::cmdscale(dist.zip.0, k=q)
+
+if (!file.exists("lmds1.RData")) {
+  lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 1000)
+} else {
+  load("lmds1.RData")
+}
+
+conf.lmds.S.res <- lmds.S.res$conf
+```
+
+```{r PART B-2 a store, include=FALSE}
+if (!file.exists("lmds1.RData")) {
+  save(lmds.S.res, file="lmds1.RData")
+}
+```
+
+```{r PART B-2 a2, out.width="90%", fig.align = "center"}
+plot(conf.lmds.S.res, main=paste0("Local MDS, k=",k,", tau=",tau))
+```
+We've selected 9 points to encompass the data's variability. These points are marked in red, and each one has assigned a number in order to recognized each point with its representation using the *plot.zip* function.
+
+```{r PART B-2 b, out.width="90%", fig.align = "center"}
+#filt <- as.data.frame(conf.lmds.S.res)
+#filt2 <- subset(filt, V1 > 40 & V1 < 55 & V2 < -7 & V2 > -14)
+selected.points <- c(443, 575, 474, 291, 905, 731, 644, 242, 201)
+aux <- conf.lmds.S.res[-selected.points,]
+aux2 <- conf.lmds.S.res[selected.points,]
+
+plot(aux, main=paste0("Local MDS, k=",k,", tau=",tau), col=8)
+points(aux2, pch = 16, col=2)
+text(aux2[,1],aux2[,2],1:9, pos=3, col=2, font = 2, cex = 1.5)
+```
+
+We can observe 2 patterns in the printed zeros below. The first one (the y-axis) is related to thickness of the stroke, positive values are thicker (the higher the value, the higher the stroke) and vice versa (lower values result in thinner strokes). On the other hand, the x-axis could be associated with the roundness of the number (negative values resemble an oval shape, while positive values resemble a circle shape). Furthermore, it appears that positive values in x-axis tend to result in unfinished strokes, like fast writing.
+
+
+```{r PART B-2 b zero plots, fig.show="hold", out.width="32%"}
+for (i in 1:length(selected.points)) {
+  index <- selected.points[i]
+  plot.zip(zip.train.0[index,], use.first=TRUE)
+  title(i, cex.main = 2.5)
+}
 
 ```
+
+
+```{r PART B-2 c LCMC function, include=FALSE}
+LCMC <- function(D1,D2,Kp){
+  D1 <- as.matrix(D1)
+  D2 <- as.matrix(D2)
+  n <- dim(D1)[1]
+  N.Kp.i <- numeric(n)
+  for (i in 1:n){
+    N1.i <- sort.int(D1[i,],index.return = TRUE)$ix[1:Kp]
+    N2.i <- sort.int(D2[i,],index.return = TRUE)$ix[1:Kp]
+    N.Kp.i[i] <- length(intersect(N1.i, N2.i))
+  }
+  N.Kp<-mean(N.Kp.i)
+  M.Kp.adj <- N.Kp/Kp - Kp/(n-1)
+  
+  return(list(N.Kp.i=N.Kp.i, M.Kp.adj=M.Kp.adj))
+}
+```
+
+
+In this last step, we have used the LCMC in order to select the best parameters for $k$ and $\tau$. In this step we used a loop to calculate the overlapping between the high-dimension distances (**dist.zip.0**, previously calculated) and the low-dimension configuration distance obtained in each step. The optimal values are $k=5$ and $\tau=1$.
+```{r PART B-2 c}
+q <- 2
+Kp <- 10
+
+K <- c(5,10,15)
+Tau <- c(.1,.5,1)
+
+if (!file.exists("lmds_k_tau.RData")) {
+  LC <- matrix(0,nrow=length(K),ncol=length(Tau))
+  lmds.k.tau <- array(vector("list",1),dim=dim(LC))
+  
+  for (i in 1:length(K)){
+    for (j in 1:length(Tau)){
+      lmds.k.tau[[i,j]] <- lmds(as.matrix(dist.zip.0), init=conf0, 
+                                ndim=q, k=K[i], tau=Tau[j], itmax=1000)$conf
+      D2.k.tau <- dist(lmds.k.tau[[i,j]])
+      LC[i,j] <- LCMC(dist.zip.0,D2.k.tau,Kp)$M.Kp.adj
+    }
+    
+  }
+} else {
+  load("lmds_k_tau.RData")
+  load("LC.RData")
+}
+
+
+ij.max <- arrayInd(which.max(LC),.dim=dim(LC))
+k.max <- K[ij.max[1]] 
+tau.max <- Tau[ij.max[2]] 
+lmds.max <- lmds.k.tau[[ij.max[1],ij.max[2]]]
+
+print(paste0("k.max=",k.max,"; tau.max=",tau.max))
+```
+
+```{r PART B-2 c store, include=FALSE}
+if (!file.exists("LC.RData")) {
+  save(LC, file="LC.RData")
+}
+
+if (!file.exists("lmds_k_tau.RData")) {
+  save(lmds.k.tau, file="lmds_k_tau.RData")
+}
+```
+
+Finally, we can once again observe the plot but with the new configuration. We selected new points to confirm the interpretations we provided earlier with the first configuration.
+```{r PART B-2 c plot, out.width="90%", fig.align = "center"}
+selected.points <- c(344, 962, 221, 530, 399, 440)
+aux <- lmds.max[-selected.points,]
+aux2 <- lmds.max[selected.points,]
+
+plot(aux, main=paste0("Local MDS, k=",k.max,", tau=",tau.max), col=8)
+points(aux2, pch = 16, col=2)
+text(aux2[,1],aux2[,2],1:6, pos=2, col=2, font = 2, cex = 1.5)
+```
+
+In this case, we can confirm that y-axis is correlated with the thickness of the number (figures 5 and 6 are thicker while the others are thinner). and x-axis is correlated with the roundness. 
+
+It's interenting to notice that in the left side of the points (points around 1), there is not much variability in the y-axis, while on the right side, the variability is the greatest. This give us a sort of a triangular form that can be related with our initial observation about writing velocity (fast writing leads to more variations of the symbol compared to the standard form of the number zero).
+
+```{r PART B-2 c zero plot, fig.show="hold", out.width="30%"}
+for (i in 1:length(selected.points)) {
+  index <- selected.points[i]
+  plot.zip(zip.train.0[index,], use.first=TRUE)
+  title(i, cex.main=2.5)
+}
+```
+
 
 
 ## 3.
