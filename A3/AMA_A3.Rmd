@@ -16,6 +16,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(plot3D)
 library(stops)
 library(Rtsne)
+library(vegan)
+library(princurve)
 ```
 
 
@@ -52,7 +54,6 @@ points3D(rx,ry,rz,col=4,pch=19,cex=.6,add=TRUE)
 
   a.
 ```{r 1 - question a}
-library(princurve)
 
 # function to determine the average sum-of-squared distances of loo principal curves by a given number of df
 loo_proj_avg_dist <- function(X, df){
@@ -326,8 +327,100 @@ for (i in 1:length(selected.points)) {
 
 
 ## 3.
-```{r PART B-3}
+```{r PART B-3 a}
+library(vegan)
+row.names(zip.train.0) <- NULL
+dist.zip.0 <- dist(zip.train.0)
 
+k <- 5
+if (!file.exists("isomap_out.RData")) {
+  isomap_out <- isomap(dist.zip.0, ndim = 2, k = k)
+} else {
+  load("isomap_out.RData")
+}
+```
+
+```{r PART B-3 a store, include=FALSE}
+if (!file.exists("isomap_out.RData")) {
+  save(isomap_out, file="isomap_out.RData")
+}
+```
+
+```{r PART B-3 a plot, out.width="90%", fig.align = "center"}
+plot(isomap_out$points)
+```
+
+```{r PART B-3 b plot, out.width="90%", fig.align = "center"}
+#filt <- as.data.frame(isomap_out$points)
+#filt[sample(nrow(filt), 9),]
+selected.points <- c(318, 586, 127, 36, 514, 165, 1131, 486, 650)
+isomap_out.no.selected <- isomap_out$points[-selected.points,]
+isomap_out.selected <- isomap_out$points[selected.points,]
+
+plot(isomap_out.no.selected, col=8)
+points(isomap_out.selected, pch = 16, col=2)
+text(isomap_out.selected[,1],isomap_out.selected[,2],1:9, pos=2, col=2, font = 2, cex = 1.5)
+```
+
+```{r PART B-3 b zero plot, fig.show="hold", out.width="30%"}
+for (i in 1:length(selected.points)) {
+  index <- selected.points[i]
+  plot.zip(zip.train.0[index,], use.first=TRUE)
+  title(i, cex.main=2.5)
+}
+```
+
+```{r PART B-3 c}
+Kp <- 10
+k <- c(5,10,15,20,25,30,40,50)
+
+if (!file.exists("Isomap_k.RData")) {
+  LC.Isomap <- numeric(length(k))
+  Isomap.k <- vector("list",length(k))
+  for (i in 1:length(k)){
+    Isomap.k[[i]] <- isomap(dist.zip.0, ndim = 2, k = k[i])
+    D2.k <- dist(Isomap.k[[i]]$points)
+    LC.Isomap[i] <- LCMC(dist.zip.0,D2.k,Kp)$M.Kp.adj
+  }
+} else {
+  load("LC_isomap.RData")
+  load("isomap_k.RData")
+}
+
+i.max <- which.max(LC.Isomap)
+k.max <- k[i.max[1]] 
+Isomap.max <- Isomap.k[[i.max]]
+
+plot(k, LC.Isomap, main=paste0("k.max=",k.max))
+abline(v=k[i.max],col=2)
+```
+
+```{r PART B-3 c store, include=FALSE}
+if (!file.exists("LC_isomap.RData")) {
+  save(LC.Isomap, file="LC_isomap.RData")
+}
+
+if (!file.exists("Isomap_k.RData")) {
+  save(Isomap.k, file="Isomap_k.RData")
+}
+```
+
+```{r PART B-3 c plot, out.width="90%", fig.align = "center"}
+selected.points <- c(344, 962, 221, 530, 399, 440)
+aux <- Isomap.max$points[-selected.points,]
+aux2 <- Isomap.max$points[selected.points,]
+
+plot(aux, main=cat("Isomap, k=",k.max), col=8)
+points(aux2, pch = 16, col=2)
+text(aux2[,1],aux2[,2],1:6, pos=2, col=2, font = 2, cex = 1.5)
+```
+
+```{r PART B-3 c zero plot, fig.show="hold", out.width="30%"}
+for (i in 1:length(selected.points)) {
+  index <- selected.points[i]
+  plot.zip(zip.train.0[index,], use.first=TRUE)
+  title(i, cex.main=2.5)
+}
 ```
 
 
