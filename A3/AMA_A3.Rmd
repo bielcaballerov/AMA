@@ -332,9 +332,110 @@ for (i in 1:length(selected.points)) {
 
 
 ## 4.
-```{r PART B-4}
+In this last exercise we have tried t-sne approach.
+```{r PART B-4 a}
+#row.names(zip.train.0) <- NULL
+#zip_matrix <- as.matrix(zip.train.0)
 
+if (!file.exists("tsne_out.RData")) {
+  tsne_out <- Rtsne(dist.zip.0, dims=2, pca=FALSE,perplexity=40,theta=0.0, max_iter=1000, num_threads=4)
+} else {
+  load("tsne_out.RData")
+}
 ```
+
+```{r PART B-4 a store, include=FALSE}
+if (!file.exists("tsne_out.RData")) {
+  save(tsne_out, file="tsne_out.RData")
+}
+```
+
+```{r PART B-4 a plot, out.width="90%", fig.align = "center"}
+plot(tsne_out$Y)
+```
+In this case, we can notice that the y-axis tends to increase as the x-axis increase, but the conclusions are similar to previous exercises. The y-axis is correlated with thickness and x-axis with roundness. It's worth highlighting that in this case, lower values correspond to thickness, but the overall interpretation remains the same.
+```{r PART B-4 b plot, out.width="90%", fig.align = "center"}
+#filt <- as.data.frame(tsne_out$Y)
+#filt2 <- subset(filt, V1 > -10 & V1 < 0 & V2 > -25 & V2 < -18)
+selected.points <- c(443, 575, 474, 139, 489, 732, 198, 242, 699 )
+tsne_out.no.selected <- tsne_out$Y[-selected.points,]
+tsne_out.selected <- tsne_out$Y[selected.points,]
+
+plot(tsne_out.no.selected, col=8)
+points(tsne_out.selected, pch = 16, col=2)
+text(tsne_out.selected[,1],tsne_out.selected[,2],1:9, pos=2, col=2, font = 2, cex = 1.5)
+```
+
+
+```{r PART B-4 b zero plot, fig.show="hold", out.width="30%"}
+for (i in 1:length(selected.points)) {
+  index <- selected.points[i]
+  plot.zip(zip.train.0[index,], use.first=TRUE)
+  title(i, cex.main=2.5)
+}
+```
+We apply the LCMC with the perplexity parameter. 
+
+```{r PART B-4 c}
+Kp <- 10
+
+perp <- c(10,15,20,25,30,35,40)
+
+if (!file.exists("Rtsne_perp.RData")) {
+  LC.Rtsne <- numeric(length(perp))
+  Rtsne.perp <- vector("list",length(perp))
+  
+  for (i in 1:length(perp)){
+    Rtsne.perp[[i]] <- Rtsne(dist.zip.0, dims=2, pca=FALSE, perplexity=perp[i],theta=0.0, max_iter=1000, num_threads=4)
+    D2.perp <- dist(Rtsne.perp[[i]]$Y)
+    LC.Rtsne[i] <- LCMC(dist.zip.0,D2.perp,Kp)$M.Kp.adj
+    
+  }
+} else {
+  load("LC_rtsne.RData")
+  load("Rtsne_perp.RData")
+}
+
+
+i.max <- which.max(LC.Rtsne)
+perplexity.max <- perp[i.max[1]] 
+Rtsne.max <- Rtsne.perp[[i.max]]
+
+plot(perp, LC.Rtsne, main=paste0("perplexity.max=",perplexity.max))
+abline(v=perp[i.max],col=2)
+```
+
+
+```{r PART B-4 c store, include=FALSE}
+if (!file.exists("LC_rtsne.RData")) {
+  save(LC.Rtsne, file="LC_rtsne.RData")
+}
+
+if (!file.exists("Rtsne_perp.RData")) {
+  save(Rtsne.perp, file="Rtsne_perp.RData")
+}
+```
+
+In this part we used the same points as in B2c part. The conclusions are similars.
+
+```{r PART B-4 c plot, out.width="90%", fig.align = "center"}
+selected.points <- c(344, 962, 221, 530, 399, 440)
+aux <- Rtsne.max$Y[-selected.points,]
+aux2 <- Rtsne.max$Y[selected.points,]
+
+plot(aux, main=paste0("Rtsne, perplexity=",perplexity.max), col=8)
+points(aux2, pch = 16, col=2)
+text(aux2[,1],aux2[,2],1:6, pos=2, col=2, font = 2, cex = 1.5)
+```
+
+```{r PART B-4 c zero plot, fig.show="hold", out.width="30%"}
+for (i in 1:length(selected.points)) {
+  index <- selected.points[i]
+  plot.zip(zip.train.0[index,], use.first=TRUE)
+  title(i, cex.main=2.5)
+}
+```
+
 
 
 ## 5.
