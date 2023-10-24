@@ -307,8 +307,7 @@ for (i in 1:length(selected.points)) {
 
 ## 5.
 ```{r PART B-5}
-
-
+pairs(cbind(lmds.max,Rtsne.max$Y))
 ```
 
 

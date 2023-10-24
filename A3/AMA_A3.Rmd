@@ -288,7 +288,7 @@ k.max <- K[ij.max[1]]
 tau.max <- Tau[ij.max[2]] 
 lmds.max <- lmds.k.tau[[ij.max[1],ij.max[2]]]
 
-print(paste0("k.max=",k.max,"; tau.max=",tau.max))
+print(paste0("k.max=",k.max,"; tau.max=",tau.max, "; LC.max=", LC[ij.max[1], ij.max[2]]))
 ```
 
 ```{r PART B-2 c store, include=FALSE}
@@ -351,8 +351,6 @@ plot(isomap_out$points)
 ```
 
 ```{r PART B-3 b plot, out.width="90%", fig.align = "center"}
-#filt <- as.data.frame(isomap_out$points)
-#filt[sample(nrow(filt), 9),]
 selected.points <- c(318, 1078, 127, 36, 514, 165, 1131, 486, 650)
 isomap_out.no.selected <- isomap_out$points[-selected.points,]
 isomap_out.selected <- isomap_out$points[selected.points,]
@@ -533,7 +531,9 @@ for (i in 1:length(selected.points)) {
 
 ## 5.
 ```{r PART B-5}
-
+pairs(cbind(lmds=data.frame("x" = lmds.max[,1], "y"=lmds.max[,2]),
+            isomap=data.frame("x"= Isomap.max$points[,1], "y"=Isomap.max$points[,2]),
+            rtsne=data.frame("x"= Rtsne.max$Y[,1], "y"=Rtsne.max$Y[,2])))
 
 ```
 
