@@ -1,6 +1,1 @@
 *.Rhistory
-*.RData
-
-!lmds1.RData
-!LC.RData
-!lmds_k_tau.RData

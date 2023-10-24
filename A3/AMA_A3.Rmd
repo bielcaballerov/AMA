@@ -353,7 +353,7 @@ plot(isomap_out$points)
 ```{r PART B-3 b plot, out.width="90%", fig.align = "center"}
 #filt <- as.data.frame(isomap_out$points)
 #filt[sample(nrow(filt), 9),]
-selected.points <- c(318, 586, 127, 36, 514, 165, 1131, 486, 650)
+selected.points <- c(318, 1078, 127, 36, 514, 165, 1131, 486, 650)
 isomap_out.no.selected <- isomap_out$points[-selected.points,]
 isomap_out.selected <- isomap_out$points[selected.points,]
 

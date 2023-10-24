@@ -157,7 +157,9 @@ k.max <- K[ij.max[1]]
 tau.max <- Tau[ij.max[2]] 
 lmds.max <- lmds.k.tau[[ij.max[1],ij.max[2]]]
 
-print(paste0("k.max=",k.max,"; tau.max=",tau.max))
+print(paste0("k.max=",k.max,"; tau.max=",tau.max, "; LC.max=", LC[ij.max[1], ij.max[2]]))
+
+
 ```
 ```{r PART B-2 c store, include=FALSE}
 if (!file.exists("LC.RData")) {
