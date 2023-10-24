@@ -54,15 +54,16 @@ points3D(rx,ry,rz,col=4,pch=19,cex=.6,add=TRUE)
 
   a.
 ```{r 1 - question a}
-
-# function to determine the average sum-of-squared distances of loo principal curves by a given number of df
+# function to determine the average sum-of-squared distances 
+# of loo principal curves by a given number of df
 loo_proj_avg_dist <- function(X, df){
   N <- dim(X)[1]
   sum_dist <- 0
   for (n in 1:N){
     X_copy <- X
     fit_in <- principal_curve(X_copy[-n,], df=df)
-    loo.proj <- project_to_curve(matrix(X[n,],ncol=3,byrow=TRUE), fit_in$s[fit_in$ord,])
+    loo.proj <- project_to_curve(matrix(X[n,],ncol=3,byrow=TRUE), 
+                                 fit_in$s[fit_in$ord,])
     sum_dist <- sum_dist + loo.proj$dist
   }
   return(sum_dist/N)
@@ -72,7 +73,7 @@ loo_proj_avg_dist <- function(X, df){
 
 df <- seq(2,8, by=1)
 
-X <- cbind(rx, ry, rz)  # TODO: #cbind(rx, ry, rz) or cbind(x, y, z)?
+X <- cbind(rx, ry, rz)
 
 
 # calculate avg sum-of-squared distances of loo principal curves for each df 
@@ -97,7 +98,6 @@ print(avg_dists[df_opt_idx])
   
   b.
 ```{r 1 - question b}
-# Give a graphical representation of the principal curve output for the optimal df and comment on the obtained results.
 
 fit <- principal_curve(X, df=df_opt)
 lines3D(fit$s[,1], fit$s[,2], fit$s[,3], colvar=NULL,
@@ -193,7 +193,8 @@ q<-2 # 2-dim config
 conf0 <- stats::cmdscale(dist.zip.0, k=q)
 
 if (!file.exists("lmds1.RData")) {
-  lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, ndim=q, k=k, tau=tau, itmax = 1000)
+  lmds.S.res <- lmds(as.matrix(dist.zip.0), init=conf0, 
+                     ndim=q, k=k, tau=tau, itmax = 1000)
 } else {
   load("lmds1.RData")
 }
@@ -213,8 +214,6 @@ plot(conf.lmds.S.res, main=paste0("Local MDS, k=",k,", tau=",tau))
 We've selected 9 points to encompass the data's variability. These points are marked in red, and each one has assigned a number in order to recognized each point with its representation using the *plot.zip* function.
 
 ```{r PART B-2 b, out.width="90%", fig.align = "center"}
-#filt <- as.data.frame(conf.lmds.S.res)
-#filt2 <- subset(filt, V1 > 40 & V1 < 55 & V2 < -7 & V2 > -14)
 selected.points <- c(443, 575, 474, 291, 905, 731, 644, 242, 201)
 aux <- conf.lmds.S.res[-selected.points,]
 aux2 <- conf.lmds.S.res[selected.points,]
@@ -224,7 +223,7 @@ points(aux2, pch = 16, col=2)
 text(aux2[,1],aux2[,2],1:9, pos=3, col=2, font = 2, cex = 1.5)
 ```
 
-We can observe 2 patterns in the printed zeros below. The first one (the y-axis) is related to thickness of the stroke, positive values are thicker (the higher the value, the higher the stroke) and vice versa (lower values result in thinner strokes). On the other hand, the x-axis could be associated with the roundness of the number (negative values resemble an oval shape, while positive values resemble a circle shape). Furthermore, it appears that positive values in x-axis tend to result in unfinished strokes, like fast writing.
+We can observe 2 patterns in the printed zeros below. The first one (the y-axis) is related to thickness of the stroke, positive values are thicker (the higher the value, the higher the stroke) and vice versa (lower values result in thinner strokes). On the other hand, the x-axis could be associated with the narrowness of the number (negative values resemble an oval shape, while positive values resemble a circle shape). Furthermore, it appears that positive values in x-axis tend to result in unfinished strokes, like fast writing.
 
 
 ```{r PART B-2 b zero plots, fig.show="hold", out.width="32%"}
@@ -288,7 +287,8 @@ k.max <- K[ij.max[1]]
 tau.max <- Tau[ij.max[2]] 
 lmds.max <- lmds.k.tau[[ij.max[1],ij.max[2]]]
 
-print(paste0("k.max=",k.max,"; tau.max=",tau.max, "; LC.max=", LC[ij.max[1], ij.max[2]]))
+print(paste0("k.max=",k.max,"; tau.max=",tau.max, 
+             "; LC.max=", LC[ij.max[1], ij.max[2]]))
 ```
 
 ```{r PART B-2 c store, include=FALSE}
@@ -314,7 +314,7 @@ text(aux2[,1],aux2[,2],1:6, pos=2, col=2, font = 2, cex = 1.5)
 
 In this case, we can confirm that y-axis is correlated with the thickness of the number (figures 5 and 6 are thicker while the others are thinner). and x-axis is correlated with the roundness. 
 
-It's interenting to notice that in the left side of the points (points around 1), there is not much variability in the y-axis, while on the right side, the variability is the greatest. This give us a sort of a triangular form that can be related with our initial observation about writing velocity (fast writing leads to more variations of the symbol compared to the standard form of the number zero).
+It's interesting to notice that in the left side of the points (points around 1), there is not much variability in the y-axis, while on the right side, the variability is the greatest. This give us a sort of a triangular form that can be related with our initial observation about writing velocity (fast writing leads to more variations of the symbol compared to the standard form of the number zero).
 
 ```{r PART B-2 c zero plot, fig.show="hold", out.width="30%"}
 for (i in 1:length(selected.points)) {
@@ -326,7 +326,7 @@ for (i in 1:length(selected.points)) {
 
 
 
-## 3.
+## 3. ISOMAP for ZERO digits
 ```{r PART B-3 a}
 library(vegan)
 row.names(zip.train.0) <- NULL
@@ -350,6 +350,7 @@ if (!file.exists("isomap_out.RData")) {
 plot(isomap_out$points)
 ```
 
+In this case Isomap gives us a peculiar result since x-axis still relates to narrowness as before, but we cannot say that y-axis and thickness are related. Instead, we observe a sort of gaussian distribution around the point 9 (being a local maximum). As we move further away from this point, the numbers become thinner. Given that 7 is evidently the thinnest point in our example (in contrast to 2, for instance), we may suspect that there exist a hidden dimension that is not well represented. In this case we have a 2-dimension representation of a 3-dimension surface, so the reduction didn't complete correctly.
 ```{r PART B-3 b plot, out.width="90%", fig.align = "center"}
 selected.points <- c(318, 1078, 127, 36, 514, 165, 1131, 486, 650)
 isomap_out.no.selected <- isomap_out$points[-selected.points,]
@@ -357,7 +358,8 @@ isomap_out.selected <- isomap_out$points[selected.points,]
 
 plot(isomap_out.no.selected, col=8)
 points(isomap_out.selected, pch = 16, col=2)
-text(isomap_out.selected[,1],isomap_out.selected[,2],1:9, pos=2, col=2, font = 2, cex = 1.5)
+text(isomap_out.selected[,1],isomap_out.selected[,2],1:9, 
+     pos=2, col=2, font = 2, cex = 1.5)
 ```
 
 ```{r PART B-3 b zero plot, fig.show="hold", out.width="30%"}
@@ -385,12 +387,12 @@ if (!file.exists("Isomap_k.RData")) {
   load("isomap_k.RData")
 }
 
-i.max <- which.max(LC.Isomap)
-k.max <- k[i.max[1]] 
-Isomap.max <- Isomap.k[[i.max]]
+i.isomap.max <- which.max(LC.Isomap)
+k.max <- k[i.isomap.max[1]] 
+Isomap.max <- Isomap.k[[i.isomap.max]]
 
 plot(k, LC.Isomap, main=paste0("k.max=",k.max))
-abline(v=k[i.max],col=2)
+abline(v=k[i.isomap.max],col=2)
 ```
 
 ```{r PART B-3 c store, include=FALSE}
@@ -402,6 +404,8 @@ if (!file.exists("Isomap_k.RData")) {
   save(Isomap.k, file="Isomap_k.RData")
 }
 ```
+
+Now, we have a more similar distribution than before. With this new parameter we have reached to a configuration that can be divided into 2 dimension. In this case, y-axis is not perfectly correlated with the thickness, as both values 1 and 6 have a similar value for the y-axis. This suggest that now thickness is also correlated with the x-axis and we require both dimensions to explain the thickness of a point.
 
 ```{r PART B-3 c plot, out.width="90%", fig.align = "center"}
 selected.points <- c(344, 962, 221, 530, 399, 440)
@@ -422,14 +426,15 @@ for (i in 1:length(selected.points)) {
 ```
 
 
-## 4.
-In this last exercise we have tried t-sne approach.
+## 4. t-SNE for ZERO digits
 ```{r PART B-4 a}
 #row.names(zip.train.0) <- NULL
 #zip_matrix <- as.matrix(zip.train.0)
 
 if (!file.exists("tsne_out.RData")) {
-  tsne_out <- Rtsne(dist.zip.0, dims=2, pca=FALSE,perplexity=40,theta=0.0, max_iter=1000, num_threads=4)
+  tsne_out <- Rtsne(dist.zip.0, dims=2, pca=FALSE,
+                    perplexity=40,theta=0.0, max_iter=1000, 
+                    num_threads=4)
 } else {
   load("tsne_out.RData")
 }
@@ -444,10 +449,8 @@ if (!file.exists("tsne_out.RData")) {
 ```{r PART B-4 a plot, out.width="90%", fig.align = "center"}
 plot(tsne_out$Y)
 ```
-In this case, we can notice that the y-axis tends to increase as the x-axis increase, but the conclusions are similar to previous exercises. The y-axis is correlated with thickness and x-axis with roundness. It's worth highlighting that in this case, lower values correspond to thickness, but the overall interpretation remains the same.
+In this case, we can notice that the y-axis tends to increase as the x-axis increase, but the conclusions are similar to previous exercises. The y-axis is correlated with thickness and x-axis with narrowness It's worth highlighting that in this case, lower values correspond to thickness, but the overall interpretation remains more or less the same. Something that differs is that the thickness is not explained only by the y-axis since values like 9 and 6 have the same degree of thickness.
 ```{r PART B-4 b plot, out.width="90%", fig.align = "center"}
-#filt <- as.data.frame(tsne_out$Y)
-#filt2 <- subset(filt, V1 > -10 & V1 < 0 & V2 > -25 & V2 < -18)
 selected.points <- c(443, 575, 474, 139, 489, 732, 198, 242, 699 )
 tsne_out.no.selected <- tsne_out$Y[-selected.points,]
 tsne_out.selected <- tsne_out$Y[selected.points,]
@@ -465,11 +468,11 @@ for (i in 1:length(selected.points)) {
   title(i, cex.main=2.5)
 }
 ```
-We apply the LCMC with the perplexity parameter. 
+
+LCMC gives us as a result that the best value for perplexity is 25.
 
 ```{r PART B-4 c}
 Kp <- 10
-
 perp <- c(10,15,20,25,30,35,40)
 
 if (!file.exists("Rtsne_perp.RData")) {
@@ -477,7 +480,9 @@ if (!file.exists("Rtsne_perp.RData")) {
   Rtsne.perp <- vector("list",length(perp))
   
   for (i in 1:length(perp)){
-    Rtsne.perp[[i]] <- Rtsne(dist.zip.0, dims=2, pca=FALSE, perplexity=perp[i],theta=0.0, max_iter=1000, num_threads=4)
+    Rtsne.perp[[i]] <- Rtsne(dist.zip.0, dims=2, pca=FALSE, 
+                             perplexity=perp[i],theta=0.0, max_iter=1000, 
+                             num_threads=4)
     D2.perp <- dist(Rtsne.perp[[i]]$Y)
     LC.Rtsne[i] <- LCMC(dist.zip.0,D2.perp,Kp)$M.Kp.adj
     
@@ -487,13 +492,12 @@ if (!file.exists("Rtsne_perp.RData")) {
   load("Rtsne_perp.RData")
 }
 
-
-i.max <- which.max(LC.Rtsne)
-perplexity.max <- perp[i.max[1]] 
-Rtsne.max <- Rtsne.perp[[i.max]]
+i.rtsne.max <- which.max(LC.Rtsne)
+perplexity.max <- perp[i.rtsne.max[1]] 
+Rtsne.max <- Rtsne.perp[[i.rtsne.max]]
 
 plot(perp, LC.Rtsne, main=paste0("perplexity.max=",perplexity.max))
-abline(v=perp[i.max],col=2)
+abline(v=perp[i.rtsne.max],col=2)
 ```
 
 
@@ -501,13 +505,12 @@ abline(v=perp[i.max],col=2)
 if (!file.exists("LC_rtsne.RData")) {
   save(LC.Rtsne, file="LC_rtsne.RData")
 }
-
 if (!file.exists("Rtsne_perp.RData")) {
   save(Rtsne.perp, file="Rtsne_perp.RData")
 }
 ```
 
-In this part we used the same points as in B2c part. The conclusions are similars.
+In this part, we used the same points as in B2c part. The conclusions are similars, but we must note that thickness is not perfectly represented by y-axis as in the previous examples. Instead, we can draw an imaginary line between points 5,6 and 1,2,3,4, which separates the level of thickness. The left side represented by points 1,2,3,4 are thinner than the group on the right side.  
 
 ```{r PART B-4 c plot, out.width="90%", fig.align = "center"}
 selected.points <- c(344, 962, 221, 530, 399, 440)
@@ -528,15 +531,24 @@ for (i in 1:length(selected.points)) {
 ```
 
 
+## 5. Compare Local MDS, ISOMAP and t-SNE for ZERO digits
 
-## 5.
-```{r PART B-5}
-pairs(cbind(lmds=data.frame("x" = lmds.max[,1], "y"=lmds.max[,2]),
-            isomap=data.frame("x"= Isomap.max$points[,1], "y"=Isomap.max$points[,2]),
-            rtsne=data.frame("x"= Rtsne.max$Y[,1], "y"=Rtsne.max$Y[,2])))
+In the plot above, we can compare the 2-dimensions of the 3 configurations. First, looking at the x-axis, we can notice that lmds and isomap are clearly positive correlated. However, when we compare both of them with t-sne we can realize how the variation increases. The correlation remains positive, but now points are sparser than before (Remember that x-axis is related to the narrowness of the number).
+
+On the other hand, when we compare the y-axis, we can confirm a negative correlation between lmds and isomap (this is due to thickness values in lmds are on the top while thickness values in isomap are in the bottom), but in the case of t-sne, the relationship is not clear at all. We must remember that thickness is not completely correlated with the y-axis and that's why the distributions shown here have these strange shapes.
+
+```{r PART B-5 a, out.width="90%", fig.align = "center"}
+pairs(cbind(lmds=data.frame("x" = lmds.max[,1],"y" = lmds.max[,2]),
+            isomap=data.frame("x"= Isomap.max$points[,1],"y"= Isomap.max$points[,2]),
+            rtsne=data.frame("x"= Rtsne.max$Y[,1],"y"= Rtsne.max$Y[,2])))
 
 ```
 
+We can also compare the LCMC values for the 3 methods. The t-sne reached the maximum at 0.51 (with perplexity=25). This can help us decide which is better In this case, t-sne seems the obvious options. Furthermore, we must mention that it takes less time for computation, which is always a plus.
+```{r PART B-5 b}
+data.frame(LMDS=LC[ij.max[1], ij.max[2]],
+           Isomap=LC.Isomap[i.isomap.max],
+           TSNE=LC.Rtsne[i.rtsne.max], row.names = c("LC"))
+```
 
-
-
+In order to improve the results or to confirm the conclusions, we can repeat the tuning process with more values for the perplexity. It's also important to mention that even though the Meta-criteria score of LMDS is lower its distributions is easier to explain.
