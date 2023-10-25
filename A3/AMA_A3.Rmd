@@ -141,7 +141,7 @@ lines3D(x,y,z,colvar = NULL,
 points3D(rx,ry,rz,col=4,pch=19,cex=.6,add=TRUE)
 ```
 
-I prefer the previous obtained optimal value here, because df=50 causes severe overfitting and hence does not generalize well to unseen data points. 
+We prefer the previous obtained optimal value here because df=50 causes severe overfitting and hence does not generalize well to unseen data points. 
 
 
 * The overfitting with df=50 is clear. Nevertheless leave-one-out cross-validation has not been able to detect this fact. Why do you think that df=50 is given a so good value of leave-one-out cross-validation error? 
@@ -223,7 +223,7 @@ points(aux2, pch = 16, col=2)
 text(aux2[,1],aux2[,2],1:9, pos=3, col=2, font = 2, cex = 1.5)
 ```
 
-We can observe 2 patterns in the printed zeros below. The first one (the y-axis) is related to thickness of the stroke, positive values are thicker (the higher the value, the higher the stroke) and vice versa (lower values result in thinner strokes). On the other hand, the x-axis could be associated with the narrowness of the number (negative values resemble an oval shape, while positive values resemble a circle shape). Furthermore, it appears that positive values in x-axis tend to result in unfinished strokes, like fast writing.
+We can observe 2 patterns in the printed zeros below. The first one (the y-axis) is related to thickness of the stroke, positive values are thicker (the higher the value, the higher the stroke) and vice versa (lower values result in thinner strokes). On the other hand, the x-axis could be associated with the narrowness of the number (low values resemble a vertically elongated shape, while high values resemble a horizontally elongated shape). Furthermore, it appears that positive values in x-axis tend to result in unfinished strokes, like fast writing.
 
 
 ```{r PART B-2 b zero plots, fig.show="hold", out.width="32%"}
@@ -301,7 +301,7 @@ if (!file.exists("lmds_k_tau.RData")) {
 }
 ```
 
-Finally, we can once again observe the plot but with the new configuration. We selected new points to confirm the interpretations we provided earlier with the first configuration.
+Finally, we can once again observe the plot but with a new configuration. We selected new points to confirm the interpretations we provided earlier with the first configuration.
 ```{r PART B-2 c plot, out.width="90%", fig.align = "center"}
 selected.points <- c(344, 962, 221, 530, 399, 440)
 aux <- lmds.max[-selected.points,]
@@ -312,7 +312,7 @@ points(aux2, pch = 16, col=2)
 text(aux2[,1],aux2[,2],1:6, pos=2, col=2, font = 2, cex = 1.5)
 ```
 
-In this case, we can confirm that y-axis is correlated with the thickness of the number (figures 5 and 6 are thicker while the others are thinner). and x-axis is correlated with the roundness. 
+In this case, we can confirm that y-axis is correlated with the thickness of the number (figures 5 and 6 are thicker while the others are thinner) and x-axis is correlated with the roundness. 
 
 It's interesting to notice that in the left side of the points (points around 1), there is not much variability in the y-axis, while on the right side, the variability is the greatest. This give us a sort of a triangular form that can be related with our initial observation about writing velocity (fast writing leads to more variations of the symbol compared to the standard form of the number zero).
 
