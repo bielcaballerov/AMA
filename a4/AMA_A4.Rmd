@@ -1,0 +1,52 @@
+---
+title: "Estimating the conditional variance by local linear regression"
+author: "Caballero Vergés Biel, Menzenbach Svenja and Reyes Illescas Kleber Enrique"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading libraries, include=FALSE}
+library(sm)
+```
+
+```{r loading data, include=FALSE}
+data(aircraft)
+help(aircraft)
+attach(aircraft)
+lgPower <- log(Power)
+lgSpan <- log(Span)
+lgLength <- log(Length)
+lgWeight <- log(Weight)
+lgSpeed <- log(Speed)
+lgRange <- log(Range)
+```
+
+# Estimating the conditional variance
+
+## 1.Fit a nonparametric regression to data $(x_i, y_i)$ and save the estimated values $\hat{m}(x_i)$.
+```{r question 1, echo=FALSE}
+```
+
+## 2.Transform the estimated residuals $\hat{\epsilon} = y_i - \hat{m}(x_i)$
+\[
+z_i = \log \epsilon_i^2 = log((y_i - \hat{x_i}))^2)
+\] 
+```{r question 2, echo=FALSE}
+```
+
+## 3. Fit a nonparametric regression to data $(x_i, z_i)$ and call the estimated function $\hat{q}(x)$. Observe that $\hat{q}(x)$ is an estimate of log $\sigma^2(x)$.
+```{r question 3, echo=FALSE}
+```
+
+## 4. Estimate $\sigma^2(x)$ by 
+\[
+\hat{\sigma}^2(x) = e^{\hat{q}(x)}
+\]
+```{r question 4, echo=FALSE}
+```
