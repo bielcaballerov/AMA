@@ -12,7 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r loading libraries, include=FALSE}
-library(sm)
+source("locpolreg.R")
+library(sm) # for function "sm.regression"
+library(KernSmooth) # for function "dpill"
 ```
 
 ```{r loading data, include=FALSE}
@@ -25,10 +27,11 @@ lg_length <- log(Length)
 lg_weight <- log(Weight)
 lg_speed <- log(Speed)
 lg_range <- log(Range)
+
 ```
 
-## Functions
-```{r k-fold-cv}
+
+```{r k-fold-cv, include=FALSE}
 k.fold.cv <- function(x,y,k=10,h=range(x)/10,p=1,type.kernel="normal"){
   n <- length(x)
   Ik <- floor((0:(n-1))/(n/k))+1
@@ -62,24 +65,27 @@ h.k.fold.cv <- function(x,y,h.v = exp(seq(log(diff(range(x))/20),
 ```
 
 
-```{r fit llr}
+```{r fit llr, include=FALSE}
 fit.loc_pol_reg <- function(x, y){
   out.cv <- h.k.fold.cv(x=x, y=y, k=n) # this function uses locpolreg
-  h_opt <- which.min(out.cv$k.cv)
-  return <- locpolreg(x=x,y=y,h=out.cv$h.v[h_opt],doing.plot=TRUE)
+  h_opt <- out.cv$h.v[which.min(out.cv$k.cv)]
+  return <- (list(lpr=locpolreg(x=x, y=y, h=h_opt, doing.plot=TRUE), 
+                  h_opt=h_opt))
 }
 ```
 
-# Estimating the conditional variance
-
-## 1.Fit a nonparametric regression to data $(x_i, y_i)$ and save the estimated values $\hat{m}(x_i)$.
-```{r question 1, echo=FALSE}
-source("locpolreg.R")
+```{r variables}
 x <- Yr
 y <- lg_weight
 n <- length(x)
+```
 
-fit_y <- fit.loc_pol_reg(x, y)
+# Estimating the conditional variance (Using loc.pol.reg)
+
+## 1.Fit a nonparametric regression to data $(x_i, y_i)$ and save the estimated values $\hat{m}(x_i)$.
+```{r question 1}
+fit.lpr <- fit.loc_pol_reg(x, y)
+fit_y <- fit.lpr$lpr
 mtgr <- fit_y$mtgr # \hat_{m}(x_i)
 
 ```
@@ -88,13 +94,14 @@ mtgr <- fit_y$mtgr # \hat_{m}(x_i)
 \[
 z_i = \log \epsilon_i^2 = log((y_i - \hat{x_i}))^2)
 \] 
-```{r question 2, echo=FALSE}
-z <- log((y - mtgr)^2)
+```{r question 2}
+hat_e <- y - mtgr
+z <- log((hat_e)^2)
 ```
 
 ## 3. Fit a nonparametric regression to data $(x_i, z_i)$ and call the estimated function $\hat{q}(x)$. Observe that $\hat{q}(x)$ is an estimate of log $\sigma^2(x)$.
-```{r question 3, echo=FALSE}
-fit_z <- fit.loc_pol_reg(x, z)
+```{r question 3}
+fit_z <- fit.loc_pol_reg(x, z)$lpr
 qtgr <- fit_z$mtgr
 ```
 
@@ -102,22 +109,67 @@ qtgr <- fit_z$mtgr
 \[
 \hat{\sigma}^2(x) = e^{\hat{q}(x)}
 \]
-```{r question 4, echo=FALSE}
+```{r question 4}
 sig.sqr <- exp(qtgr)
 ```
 
 ## plots
-```{r}
-plot(x, (y - mtgr)^2)
-lines(x, sig.sqr, col=2, lwd=2)
+```{r plot 1}
+plot(x, (hat_e)^2)
+lines(x, sig.sqr, col=4, lwd=3)
+```
 
-
-plot(x,mtgr, type = 'l')
+```{r plot 2}
+y.min <- min(mtgr - 1.96 * sqrt(sig.sqr)) - 0.1
+y.max <- max(mtgr + 1.96 * sqrt(sig.sqr)) + 0.1
+plot(x,mtgr, type = 'l', ylim=c(y.min, y.max))
 lines(x,mtgr + 1.96 * sqrt(sig.sqr), col="blue")
 lines(x,mtgr - 1.96 * sqrt(sig.sqr), col="blue")
 ```
+# Estimating the conditional variance (Using sm.regression)
 
+## 1.Fit a nonparametric regression to data $(x_i, y_i)$ and save the estimated values $\hat{m}(x_i)$.
+```{r question 1_2}
+h.dpi <- dpill(x=x, y=y, range.x=range(x))
+sm_regression <- sm.regression(x=x, y=y, eval.points=x, h=h.dpi, pch=1, cex=1, col=2, lwd=2)
+mtgr_sm <- sm_regression$estimate
+```
 
+## 2.Transform the estimated residuals $\hat{\epsilon} = y_i - \hat{m}(x_i)$
+\[
+z_i = \log \epsilon_i^2 = log((y_i - \hat{x_i}))^2)
+\] 
+```{r question 2_2}
+hat_e_sm <- y - mtgr_sm
+z_sm <- log((hat_e_sm)^2)
+```
 
+## 3. Fit a nonparametric regression to data $(x_i, z_i)$ and call the estimated function $\hat{q}(x)$. Observe that $\hat{q}(x)$ is an estimate of log $\sigma^2(x)$.
+```{r question 3_2}
+sm_regression_z <- sm.regression(x=x, y=z, pch=1, cex=1, col=2, lwd=2,
+                               eval.points=x, 
+                               h=dpill(x=x, y=z, range.x=range(x)))
+qtgr_sm <- sm_regression_z$estimate
+```
 
+## 4. Estimate $\sigma^2(x)$ by 
+\[
+\hat{\sigma}^2(x) = e^{\hat{q}(x)}
+\]
+```{r question 4_2}
+sig.sqr_sm <- exp(qtgr_sm)
+```
 
+## plots
+```{r plot 1_2}
+plot(x, (hat_e_sm)^2)
+lines(x, sig.sqr_sm, col=4, lwd=3)
+```
+
+```{r plot 2_2}
+y.min_sm <- min(mtgr_sm - 1.96 * sqrt(sig.sqr_sm)) - 0.1
+y.max_sm <- max(mtgr_sm + 1.96 * sqrt(sig.sqr_sm)) + 0.1
+plot(x,mtgr_sm, type = 'l', ylim=c(y.min_sm, y.max_sm))
+lines(x,mtgr_sm + 1.96 * sqrt(sig.sqr_sm), col="blue")
+lines(x,mtgr_sm - 1.96 * sqrt(sig.sqr_sm), col="blue")
+```
