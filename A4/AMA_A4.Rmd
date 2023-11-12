@@ -17,14 +17,57 @@ library(sm)
 
 ```{r loading data, include=FALSE}
 data(aircraft)
-help(aircraft)
+
 attach(aircraft)
-lgPower <- log(Power)
-lgSpan <- log(Span)
-lgLength <- log(Length)
-lgWeight <- log(Weight)
-lgSpeed <- log(Speed)
-lgRange <- log(Range)
+lg_power <- log(Power)
+lg_span <- log(Span)
+lg_length <- log(Length)
+lg_weight <- log(Weight)
+lg_speed <- log(Speed)
+lg_range <- log(Range)
+```
+
+## Functions
+```{r k-fold-cv}
+k.fold.cv <- function(x,y,k=10,h=range(x)/10,p=1,type.kernel="normal"){
+  n <- length(x)
+  Ik <- floor((0:(n-1))/(n/k))+1
+  ssr <- 0
+  for (i in (1:k)){
+    y.i <- y[Ik==i]
+    aux <- locpolreg(x[Ik!=i],y[Ik!=i],h=h,p=p,tg=x[Ik==i],
+                     type.kernel=type.kernel, doing.plot=FALSE)
+    ssr <- ssr + sum((y.i-aux$mtgr)^2)
+  }
+  k.cv <- ssr/n
+  return(k.cv)
+}
+
+h.k.fold.cv <- function(x,y,h.v = exp(seq(log(diff(range(x))/20),
+                                          log(diff(range(x))/4),l=12)), 
+                        k=10,p=1,type.kernel="normal"){
+  n <- length(x)
+  perm <- sample(1:n)
+  xperm <- x[perm]
+  yperm <- y[perm]
+  
+  k.cv <- h.v*0
+  for (i in (1:length(h.v))){
+    h <- h.v[i]
+    k.cv[i] <- k.fold.cv(x=xperm,y=yperm,k=k,h=h,p=p,
+                         type.kernel=type.kernel)
+  }
+  return(list(k=k,h.v=h.v,k.cv=k.cv))
+}
+```
+
+
+```{r fit llr}
+fit.loc_pol_reg <- function(x, y){
+  out.cv <- h.k.fold.cv(x=x, y=y, k=n) # this function uses locpolreg
+  h_opt <- which.min(out.cv$k.cv)
+  return <- locpolreg(x=x,y=y,h=out.cv$h.v[h_opt],doing.plot=TRUE)
+}
 ```
 
 # Estimating the conditional variance
@@ -33,17 +76,11 @@ lgRange <- log(Range)
 ```{r question 1, echo=FALSE}
 source("locpolreg.R")
 x <- Yr
-y <- lgWeight
-
-fit.loc_pol_reg <- function(x, y){
-  out.cv <- h.cv.gcv(x=x, y=y)$cv # this function uses locpolreg
-  h_opt <- which.min(out.cv)
-  return <- locpolreg(x=x,y=y,h=h_opt,doing.plot=TRUE)
-}
+y <- lg_weight
+n <- length(x)
 
 fit_y <- fit.loc_pol_reg(x, y)
-mtgr <- fit_y$mtgr
-
+mtgr <- fit_y$mtgr # \hat_{m}(x_i)
 
 ```
 
@@ -58,7 +95,7 @@ z <- log((y - mtgr)^2)
 ## 3. Fit a nonparametric regression to data $(x_i, z_i)$ and call the estimated function $\hat{q}(x)$. Observe that $\hat{q}(x)$ is an estimate of log $\sigma^2(x)$.
 ```{r question 3, echo=FALSE}
 fit_z <- fit.loc_pol_reg(x, z)
-q <- fit_z$mtgr
+qtgr <- fit_z$mtgr
 ```
 
 ## 4. Estimate $\sigma^2(x)$ by 
@@ -66,13 +103,13 @@ q <- fit_z$mtgr
 \hat{\sigma}^2(x) = e^{\hat{q}(x)}
 \]
 ```{r question 4, echo=FALSE}
-sig.sqr <- exp(q)
+sig.sqr <- exp(qtgr)
 ```
 
 ## plots
 ```{r}
 plot(x, (y - mtgr)^2)
-lines(x, sig.sqr, col="blue")
+lines(x, sig.sqr, col=2, lwd=2)
 
 
 plot(x,mtgr, type = 'l')
@@ -82,26 +119,5 @@ lines(x,mtgr - 1.96 * sqrt(sig.sqr), col="blue")
 
 
 
-## Ordinary and Generalized Cross-Validation
-```{r}
-h.cv.gcv <- function(x,y,h.v = exp(seq(log(diff(range(x))/20),
-                                       log(diff(range(x))/4),l=10)), 
-                     p=1,type.kernel="normal"){
-  n <- length(x)
-  cv <- h.v*0
-  gcv <- h.v*0
-  for (i in (1:length(h.v))){
-    h <- h.v[i]
-    aux <- locpolreg(x=x,y=y,h=h,p=p,tg=x,
-                     type.kernel=type.kernel, doing.plot=FALSE)
-    S <- aux$S
-    h.y <- aux$mtgr
-    hii <- diag(S)
-    av.hii <- mean(hii)
-    cv[i] <- sum(((y-h.y)/(1-hii))^2)/n
-    gcv[i] <- sum(((y-h.y)/(1-av.hii))^2)/n
-  }
-  return(list(h.v=h.v,cv=cv,gcv=gcv))
-}
-```
+
 
