@@ -89,6 +89,7 @@ fit_y <- fit.lpr$lpr
 mtgr <- fit_y$mtgr # \hat_{m}(x_i)
 
 ```
+Looking at the plot of the data we can see that the varicance is not constant for all x. The variance at the beginning seems to be lower.
 
 ## 2.Transform the estimated residuals $\hat{\epsilon} = y_i - \hat{m}(x_i)$
 \[
@@ -118,6 +119,7 @@ sig.sqr <- exp(qtgr)
 plot(x, (hat_e)^2)
 lines(x, sig.sqr, col=4, lwd=3)
 ```
+Here we can see that the residual of the estimation and the datapoints have a high variance that increases over x until abou x=68 and decreases again from there. This also shows the changing variance which is also shown in the blue line. While the variance is close to zero at the beginning it rises to about 1.
 
 ```{r plot 2}
 y.min <- min(mtgr - 1.96 * sqrt(sig.sqr)) - 0.1
@@ -126,6 +128,9 @@ plot(x,mtgr, type = 'l', ylim=c(y.min, y.max))
 lines(x,mtgr + 1.96 * sqrt(sig.sqr), col="blue")
 lines(x,mtgr - 1.96 * sqrt(sig.sqr), col="blue")
 ```
+Here we can see very well that the variance changes over x as the blue boundaries don't have the same distance to the estimate at all times. They represent an uncertainty of our estimation.
+
+
 # Estimating the conditional variance (Using sm.regression)
 
 ## 1.Fit a nonparametric regression to data $(x_i, y_i)$ and save the estimated values $\hat{m}(x_i)$.
@@ -163,13 +168,19 @@ sig.sqr_sm <- exp(qtgr_sm)
 ## plots
 ```{r plot 1_2}
 plot(x, (hat_e_sm)^2)
-lines(x, sig.sqr_sm, col=4, lwd=3)
+lines(x, sig.sqr_sm, col=2, lwd=3)
 ```
+The result looks almost the same to the result of the former Local polynomial regression function.
+
 
 ```{r plot 2_2}
 y.min_sm <- min(mtgr_sm - 1.96 * sqrt(sig.sqr_sm)) - 0.1
 y.max_sm <- max(mtgr_sm + 1.96 * sqrt(sig.sqr_sm)) + 0.1
 plot(x,mtgr_sm, type = 'l', ylim=c(y.min_sm, y.max_sm))
-lines(x,mtgr_sm + 1.96 * sqrt(sig.sqr_sm), col="blue")
-lines(x,mtgr_sm - 1.96 * sqrt(sig.sqr_sm), col="blue")
+lines(x,mtgr_sm + 1.96 * sqrt(sig.sqr_sm), col=2)
+lines(x,mtgr_sm - 1.96 * sqrt(sig.sqr_sm), col=2)
 ```
+
+```
+Also this result looks very similar to the result of the former Local polynomial regression function.
+
