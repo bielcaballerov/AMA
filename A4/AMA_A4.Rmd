@@ -89,7 +89,7 @@ fit_y <- fit.lpr$lpr
 mtgr <- fit_y$mtgr # \hat_{m}(x_i)
 
 ```
-Looking at the plot of the data we can see that the varicance is not constant for all x. The variance at the beginning seems to be lower.
+Looking at the plot of the data we can see that the variance is not constant for all x. The variance at the beginning is lower and it increases as the value of x increases, until almost a value of x equal to 60, as it decreases unitl a value of x of 80 that it starts to increase again.
 
 ## 2.Transform the estimated residuals $\hat{\epsilon} = y_i - \hat{m}(x_i)$
 \[
@@ -105,6 +105,8 @@ z <- log((hat_e)^2)
 fit_z <- fit.loc_pol_reg(x, z)$lpr
 qtgr <- fit_z$mtgr
 ```
+Following the same explanation as before, the variance decreases slightly as the value of x increase, but at x=65 more or less it seems to increase again.
+
 
 ## 4. Estimate $\sigma^2(x)$ by 
 \[
@@ -114,12 +116,12 @@ qtgr <- fit_z$mtgr
 sig.sqr <- exp(qtgr)
 ```
 
-## plots
+## Plots
 ```{r plot 1}
 plot(x, (hat_e)^2)
 lines(x, sig.sqr, col=4, lwd=3)
 ```
-Here we can see that the residual of the estimation and the datapoints have a high variance that increases over x until abou x=68 and decreases again from there. This also shows the changing variance which is also shown in the blue line. While the variance is close to zero at the beginning it rises to about 1.
+Here we can see that the residual of the estimation and the data points have a high variance that increases over x until about x=68 and decreases again from there. This also shows the changing variance which is also shown in the blue line. While the variance is close to zero at the beginning it rises to about 1.
 
 ```{r plot 2}
 y.min <- min(mtgr - 1.96 * sqrt(sig.sqr)) - 0.1
@@ -165,13 +167,12 @@ qtgr_sm <- sm_regression_z$estimate
 sig.sqr_sm <- exp(qtgr_sm)
 ```
 
-## plots
+## Plots
 ```{r plot 1_2}
 plot(x, (hat_e_sm)^2)
 lines(x, sig.sqr_sm, col=2, lwd=3)
 ```
-The result looks almost the same to the result of the former Local polynomial regression function.
-
+The result looks almost the similar to the result of the former Local polynomial regression function. The only difference is that it seems that about x=68 the variance decreases more than in the previous result (Local polynomial regression function).
 
 ```{r plot 2_2}
 y.min_sm <- min(mtgr_sm - 1.96 * sqrt(sig.sqr_sm)) - 0.1
@@ -181,6 +182,5 @@ lines(x,mtgr_sm + 1.96 * sqrt(sig.sqr_sm), col=2)
 lines(x,mtgr_sm - 1.96 * sqrt(sig.sqr_sm), col=2)
 ```
 
-```
-Also this result looks very similar to the result of the former Local polynomial regression function.
+Also this result looks very similar to the result of the former Local polynomial regression function. We can see very well that the variance changes over x as the red boundaries don't have the same distance to the estimate at all times. They represent an uncertainty of our estimation.
 
