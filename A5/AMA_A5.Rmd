@@ -1,0 +1,50 @@
+---
+title: "Local Poisson regression"
+author: "Biel Caballero Vergés, Svenja Menzenbach and Kleber Enrique Reyes Illescas"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Bandwidth choice for the local Poisson regression
+
+```{r}
+h.cv.sm.binomial <- function(x,y,rg.h=NULL,l.h=10,method=loglik.CV){
+   cv.h <- numeric(l.h)
+   if (is.null(rg.h)){
+      hh <- c(h.select(x,y,method="cv"),
+              h.select(x,y,method="aicc"))
+      rg.h <- range(hh)*c(1/1.1, 1.5)
+   }
+   i <- 0
+   gr.h <- exp( seq(log(rg.h[1]), log(rg.h[2]), l=l.h))
+   for (h in gr.h){
+      i <- i+1
+      cv.h[i] <- method(x,y,h)
+   }
+   return(list(h = gr.h, 
+               cv.h = cv.h, 
+               h.cv = gr.h[which.min(cv.h)]))
+}
+```
+
+```{r}
+loglik.CV <- function(x,y,h){
+  n <- length(x)
+  pred <- sapply(1:n, 
+      function(i,x,y,h){
+         sm.binomial(x=x[-i],y=y[-i],h=h,eval.points=x[i],display="none")$estimate
+      },   x,y,h)
+  return(-sum( y*log(pred/(1-pred)) + log(1-pred) )/n)
+}
+```
+
+
+# 2. Local Poisson regression for Country Development Data
+
+```{r}
+
+```
