@@ -2,9 +2,7 @@
 title: "Local Poisson regression"
 author: "Biel Caballero Vergés, Svenja Menzenbach and Kleber Enrique Reyes Illescas"
 date: "`r Sys.Date()`"
-output: 
-  pdf_document: default
-  html_document: default
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -13,45 +11,58 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # 1. Bandwidth choice for the local Poisson regression
 
-```{r bandwidth functions, include=FALSE}
-h.cv.sm.poisson <- function(x,y,rg.h=NULL,l.h=10){
-   cv.h <- numeric(l.h)
-   if (is.null(rg.h)){
-      hh <- c(h.select(x,y,method="cv"),
-              h.select(x,y,method="aicc"))#,hcv(x,y))
-      rg.h <- range(hh)*c(1/1.1, 1.5)
-   }
-   i <- 0
-   gr.h <- exp( seq(log(rg.h[1]), log(rg.h[2]), l=l.h))
-   for (h in gr.h){
-      i <- i+1
-      cv.h[i] <- loglik.CV(x,y,h)
-   }
-   return(list(h = gr.h, 
-               cv.h = cv.h, 
-               h.cv = gr.h[which.min(cv.h)]))
+```{r}
+h.cv.sm.poisson <- function(x, y, rg.h = NULL, l.h = 10, method = loglik.CV) {
+  cv.h <- numeric(l.h)
+  
+  if (is.null(rg.h)) {
+    hh <- c(h.select(x, y, method = "cv"), h.select(x, y, method = "aicc"))
+    rg.h <- range(hh) * c(1/1.1, 1.5)
+  }
+  
+  gr.h <- exp(seq(log(rg.h[1]), log(rg.h[2]), length.out = l.h))
+  
+  for (i in 1:length(gr.h)) {
+    cv.h[i] <- method(x, y, gr.h[i])
+  }
+  
+  return(list(h = gr.h, cv.h = cv.h, h.cv = gr.h[which.min(cv.h)]))
 }
+```
 
-# method loglik.CV: leave-one-out log-likelihood 
-loglik.CV <- function(x,y,h){
+```{r}
+loglik.CV <- function(x, y, h) {
   n <- length(x)
-  pred <- sapply(1:n, 
-      function(i,x,y,h){
-         #sm.poisson(x=x[-i],y=y[-i],h=h,eval.points=x[i],display="none")$estimate
-      },   x,y,h)
-  return(-sum( y*log(pred/(1-pred)) + log(1-pred) )/n)
+  pred <- sapply(1:n, function(i, x, y, h) {
+    lambda_i <- sm.poisson(x = x[-i], y = y[-i], h = h, eval.points = x[i], display = "none")$estimate$lambda
+    dpois(y[i], lambda = lambda_i, log = TRUE)
+  }, x, y, h)
+  
+  return(-sum(pred) / n)
 }
 ```
 
 
 # 2. Local Poisson regression for Country Development Data
 
-```{r load data}
-countries<-read.csv2(file="HDI.2017.subset.csv",row.names = 1)
-life.expec <- countries$Life.expec
-le.fm.r <- round(countries$le.fm)
-```
+```{r}
+# Load required library
+library(sm)
 
-```{r ex2}
+data <- read.csv("HDI.2017.subset.csv", sep = ";", header = TRUE)  # Replace with your file path
+
+le_fm <- as.numeric(gsub(",", ".",data$le.fm))
+
+life_expec <- as.numeric(gsub(",", ".",data$Life.expec))
+
+le_fm_r <- round(le_fm)
+
+cv_result <- h.cv.sm.poisson(life_expec, le_fm_r)
+
+selected_bandwidth <- cv_result$h.cv
+
+model <- sm.poisson(x = life_expec, y = le_fm_r, h = selected_bandwidth)
+
+summary(model)
 
 ```
