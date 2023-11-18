@@ -203,13 +203,13 @@ As we have mentioned earlier, both results are quite similar and we can observe 
 ```{r conclusion plot, echo=FALSE, fig.dim = c(6, 8), fig.align = "center"}
 layout(matrix(c(1,1,2,2), nrow = 2, ncol = 2, byrow = TRUE))
 
-plot(x,mtgr, type = 'l', ylim=c(y.min, y.max))
-points(x,y, col=8)
+plot(x,y, col=8)
+lines(x,mtgr)
 lines(x,mtgr + 1.96 * sqrt(sig.sqr), col=4)
 lines(x,mtgr - 1.96 * sqrt(sig.sqr), col=4)
 
-plot(x,mtgr_sm, type = 'l', ylim=c(y.min_sm, y.max_sm))
-points(x,y, col=8)
+plot(x,y, col=8)
+lines(x,mtgr_sm)
 lines(x,mtgr_sm + 1.96 * sqrt(sig.sqr_sm), col=2)
 lines(x,mtgr_sm - 1.96 * sqrt(sig.sqr_sm), col=2)
 ```
