@@ -14,12 +14,12 @@ knitr::opts_chunk$set(echo = TRUE)
 # 1. Bandwidth choice for the local Poisson regression
 
 ```{r}
-h.cv.sm.poisson <- function(x, y, rg.h = NULL, l.h = 10) {
+h.cv.sm.poisson <- function(x, y, rg.h = NULL, l.h = 20) {
   cv.h <- numeric(l.h)
   
   if (is.null(rg.h)) {
     hh <- c(h.select(x, y, method = "cv"), h.select(x, y, method = "aicc"))
-    rg.h <- range(hh) * c(1/1.1, 1.5)
+    rg.h <- range(hh) * c(0.5, 1.5)
   }
   
   gr.h <- exp(seq(log(rg.h[1]), log(rg.h[2]), length.out = l.h))
@@ -41,9 +41,8 @@ loglik.CV <- function(x, y, h) {
         sm.poisson(x = x[-i], y = y[-i], h = h, eval.points = x[i], display = "none")$estimate
     }, x, y, h)
     
-    return(-sum( exp(-lambda)*((lambda^y)/factorial(y))))
-    
-  #return(-sum( y*exp(-lambda)*((lambda^y)/factorial(y)))) ?
+    # return(-sum( log(exp(-lambda)*((lambda^y)/factorial(y))))/n )
+    return(-sum(-lambda + log(lambda^y/factorial(y)))/n )
 }
 ```
 
@@ -61,12 +60,14 @@ le.fm.r <- round(countries$le.fm)
 
 cv_result <- h.cv.sm.poisson(life.expec, le.fm.r)
 plot(cv_result$h, cv_result$cv.h)
-selected_bandwidth <- cv_result$h.cv
-abline(v = selected_bandwidth, col="8", lty=2)
-text(selected_bandwidth, -26, round(selected_bandwidth*100)/100,cex=0.65, pos=4,col=1) 
+selected.bandwidth <- cv_result$h.cv
+abline(v = selected.bandwidth, col="8", lty=2)
+mid.point <- (max(cv_result$cv.h)+min(cv_result$cv.h))/2
+text(selected.bandwidth, mid.point, 
+     round(selected.bandwidth*100)/100,cex=0.65, pos=4,col=1) 
 lines(cv_result$h, cv_result$cv.h)
 
-model <- sm.poisson(x = life.expec, y = le.fm.r, h = selected_bandwidth, col=1)
+model <- sm.poisson(x = life.expec, y = le.fm.r, h = selected.bandwidth, col=1)
 summary(model)
 
 ```
