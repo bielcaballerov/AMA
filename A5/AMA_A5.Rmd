@@ -13,13 +13,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # 1. Bandwidth choice for the local Poisson regression
 
+In this section, we have modify the *h.cv.sm.binomial* (now *h.cv.sm.poisson*) and the *loglik.CV* functions in order to be able to use it for the local Poisson regression. We have simplified the code to have less parameters. 
+
 ```{r}
-h.cv.sm.poisson <- function(x, y, rg.h = NULL, l.h = 20) {
+h.cv.sm.poisson <- function(x, y, rg.h = NULL, l.h = 10) {
   cv.h <- numeric(l.h)
   
   if (is.null(rg.h)) {
     hh <- c(h.select(x, y, method = "cv"), h.select(x, y, method = "aicc"))
-    rg.h <- range(hh) * c(0.5, 1.5)
+    rg.h <- range(hh) * c(1/1.1, 1.5)
   }
   
   gr.h <- exp(seq(log(rg.h[1]), log(rg.h[2]), length.out = l.h))
@@ -49,6 +51,8 @@ loglik.CV <- function(x, y, h) {
 
 # 2. Local Poisson regression for Country Development Data
 
+With our new function, we can acquire an optimal bandwidth for fitting our model.
+
 ```{r}
 # Load required library
 library(sm)
@@ -58,7 +62,8 @@ countries <- read.csv2(file="HDI.2017.subset.csv",row.names = 1)
 life.expec <- countries$Life.expec
 le.fm.r <- round(countries$le.fm)
 
-cv_result <- h.cv.sm.poisson(life.expec, le.fm.r)
+cv_result <- h.cv.sm.poisson(life.expec, le.fm.r, rg.h=c(0.5,10), l.h = 30)
+
 plot(cv_result$h, cv_result$cv.h)
 selected.bandwidth <- cv_result$h.cv
 abline(v = selected.bandwidth, col="8", lty=2)
