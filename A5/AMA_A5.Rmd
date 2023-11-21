@@ -37,7 +37,7 @@ loglik.CV <- function(x, y, h) {
     sm.poisson(x = x[-i], y = y[-i], h = h, eval.points = x[i], display = "none")$estimate
   }, x, y, h)
   
-  return(-sum(log(pred)) / n)
+  return(sum(log(pred)) / n)
 }
 ```
 
