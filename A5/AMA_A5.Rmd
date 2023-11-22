@@ -2,7 +2,9 @@
 title: "Local Poisson regression"
 author: "Biel Caballero Vergés, Svenja Menzenbach and Kleber Enrique Reyes Illescas"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -15,8 +17,9 @@ library(sm) # for function "sm.poisson"
 
 # 1. Bandwidth choice for the local Poisson regression
 
+In this section, we have modify the *h.cv.sm.binomial* (now *h.cv.sm.poisson*) and the *loglik.CV* functions in order to be able to use it for the local Poisson regression. We have simplified the code to have less parameters. 
 ```{r}
-h.cv.sm.poisson <- function(x, y, rg.h = NULL, l.h = 10, method = loglik.CV) {
+h.cv.sm.poisson <- function(x, y, rg.h = NULL, l.h = 10) {
   cv.h <- numeric(l.h)
   
   if (is.null(rg.h)) {
@@ -27,7 +30,7 @@ h.cv.sm.poisson <- function(x, y, rg.h = NULL, l.h = 10, method = loglik.CV) {
   gr.h <- exp(seq(log(rg.h[1]), log(rg.h[2]), length.out = l.h))
   
   for (i in 1:length(gr.h)) {
-    cv.h[i] <- method(x, y, gr.h[i])
+    cv.h[i] <- loglik.CV(x, y, gr.h[i])
   }
   
   return(list(h = gr.h, cv.h = cv.h, h.cv = gr.h[which.max(cv.h)]))
@@ -52,6 +55,7 @@ loglik.CV <- function(x, y, h) {
 
 # 2. Local Poisson regression for Country Development Data
 
+With our new function, we can acquire an optimal bandwidth for fitting our model.
 ```{r}
 
 countries <- read.csv2(file="HDI.2017.subset.csv",row.names = 1)
@@ -59,7 +63,7 @@ countries <- read.csv2(file="HDI.2017.subset.csv",row.names = 1)
 life.expec <- countries$Life.expec
 le.fm.r <- round(countries$le.fm)
 
-cv_result <- h.cv.sm.poisson(life.expec, le.fm.r, method = loglik.CV)
+cv_result <- h.cv.sm.poisson(life.expec, le.fm.r, rg.h=c(0.5,10), l.h = 30)
 
 plot(cv_result$h, cv_result$cv.h)
 selected.bandwidth <- cv_result$h.cv
@@ -72,4 +76,4 @@ lines(cv_result$h, cv_result$cv.h)
 model <- sm.poisson(x = life.expec, y = le.fm.r, h = selected.bandwidth, col=1)
 
 ```
-The leave-one-out cross-validation determines 2.49 as optimal bandwidth. The fit of the local Poisson regression looks smooth and reasonable. It follows the course of high density of points while generalizing to all data. We do not observe overfitting.
+The leave-one-out cross-validation determines 2.61 as optimal bandwidth. The fit of the local Poisson regression looks smooth and reasonable. It follows the course of high density of points while generalizing to all data. We do not observe overfitting.
