@@ -44,7 +44,7 @@ loglik.CV <- function(x, y, h) {
                    eval.points = x[i], display = "none")$estimate
     }, x, y, h)
     
-    return(-sum(-lambda + y*log(lambda) -log(factorial(y)) )/n )
+    return(sum(-lambda + y*log(lambda) -log(factorial(y)) )/n )
 }
 ```
 
