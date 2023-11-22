@@ -72,3 +72,4 @@ lines(cv_result$h, cv_result$cv.h)
 model <- sm.poisson(x = life.expec, y = le.fm.r, h = selected.bandwidth, col=1)
 
 ```
+The leave-one-out cross-validation determines 2.49 as optimal bandwidth. The fit of the local Poisson regression looks smooth and reasonable. It follows the course of high density of points while generalizing to all data. We do not observe overfitting.
