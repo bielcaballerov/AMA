@@ -50,13 +50,15 @@ lines(sm.sp, col=2, lwd=2)
 ## 2. The script IRWLS logistic regression.R includes the definition of the function logistic.IRWLS.splines performing nonparametric logistic regression using splines with a IRWLS procedure. The basic syntax is the following: logistic.IRWLS.splines(x=..., y=..., x.new=..., df=..., plts=TRUE) where the arguments are the explanatory variable x, the 0-1 response variable y, the vector x.new of new values of variable x where we want to predict the probability of y being 1 given that x is equal to x.new, the equivalent number of parameters (or model degrees of freedom) df, and the logical plts indicating if plots are desired or not. Define a new variable cnt.5000 taking the value 1 for days such that the number of total rental bikes is larger than or equal to 5000, on 0 otherwise.
 ```{r}
 source("IRWLS_logistic_regression.R")
-logistic.IRWLS.splines()
+cnt.5000 <- as.numeric(cnt >= 5000)
 ```
 
 ### a) Use the function logistic.IRWLS.splines to fit the non-parametric binary regression cnt.5000 as a function of the temperature, using df=6. In which range of temperatures is Pr(cnt >= 5000|temp) larger than 0,5?
 ```{r}
+logistic.IRWLS.splines(x=temp, y=cnt.5000, x.new=temp, df=6, plts=TRUE)
 
 ```
+In temperatures of 20°-35° is Pr(cnt >= 5000|temp) larger than 0,5.
 
 ### b) Choose the parameter df by k-fold log-likelihood cross validation with k = 5 and using df.v = 3:15 as the set of possible values for df.
 ```{r}
