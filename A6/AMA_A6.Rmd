@@ -66,7 +66,28 @@ Looking at the plot, the temperatures between 20° and 35° have Pr(cnt >= 5000|
 
 ### b) Choose the parameter df by k-fold log-likelihood cross validation with k = 5 and using df.v = 3:15 as the set of possible values for df.
 ```{r}
+# it is not log likelihood yet !!!!! (I changed  function from A4)
+k.fold.ll.cv <- function(x,y,k=5,df){
+  n <- length(x)
+  Ik <- floor((0:(n-1))/(n/k))+1
+  ssr <- 0
+  for (i in (1:k)){
+    y.i <- y[Ik==i]
+    aux <- IRWLS.sp <- logistic.IRWLS.splines(x[Ik!=i], y[Ik!=i],                                    x.new=x[Ik!=i], df=df,plts=FALSE)
+    ssr <- ssr + sum((y.i-aux$predicted.values)^2)
+  }
+  k.cv <- ssr/n
+  return(k.cv)
+}
+```
 
+
+```{r}
+df.v = 3:15
+
+for (df in df.v){
+  k.fold.ll.cv(temp, cnt.5000, df)
+}
 ```
 
 
