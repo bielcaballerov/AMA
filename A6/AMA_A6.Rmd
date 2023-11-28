@@ -55,10 +55,14 @@ cnt.5000 <- as.numeric(cnt >= 5000)
 
 ### a) Use the function logistic.IRWLS.splines to fit the non-parametric binary regression cnt.5000 as a function of the temperature, using df=6. In which range of temperatures is Pr(cnt >= 5000|temp) larger than 0,5?
 ```{r}
-logistic.IRWLS.splines(x=temp, y=cnt.5000, x.new=temp, df=6, plts=TRUE)
-
+IRWLS.sp <- logistic.IRWLS.splines(x=temp, y=cnt.5000, x.new=temp, df=6, plts=TRUE)
+x.05 <- x[as.numeric(IRWLS.sp$predicted.values >= 0.5) == 1]
+x.05
+x.min <- min(x.05)
+x.max <- max(x.05)
+print(sprintf("min: %d,  max: %d", x.min, x.max))
 ```
-In temperatures of 20°-35° is Pr(cnt >= 5000|temp) larger than 0,5.
+Looking at the plot, the temperatures between 20° and 35° have Pr(cnt >= 5000|temp) larger than 0.5. Except for the first plot, here we cannot fully observe the range. When determining the temperature from the returned prediction the range of x is between 21° and 75°. 
 
 ### b) Choose the parameter df by k-fold log-likelihood cross validation with k = 5 and using df.v = 3:15 as the set of possible values for df.
 ```{r}
