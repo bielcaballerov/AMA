@@ -13,9 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r loading libraries, include=FALSE}
 library(sm)
+set.seed(123)
 ```
 
-### Load data
 ```{r loading data, include=FALSE}
 load("bikes.Washington.Rdata")
 attach(bikes)
@@ -32,13 +32,13 @@ sm.sp$fit$nk-2
 ```
 
 ### a) Which is the value of the chosen penalty parameter $\lambda$?
-The value of $\lambda$ is 1.005038e-07.
+The value of $\lambda$ is `r sm.sp$lambda`.
 
 ### b) Which is the corresponding equivalent number of degrees of freedom df?
-The corresponding equivalent number of degrees of freedom (df) is 93.34091.
+The corresponding equivalent number of degrees of freedom (df) is `r sm.sp$df`.
 
 ### c) How many knots have been used?
-We have used 134 knots.
+We have used `r sm.sp$fit$nk-2` knots.
 
 ### d) Give a graphic with the scatter plot and the estimated regression function $\hat{m}$(instant).
 ```{r}
@@ -74,7 +74,7 @@ x.min <- min(x.05)
 x.max <- max(x.05)
 print(sprintf("min: %f,  max: %f", x.min, x.max))
 ```
-Looking at the returned prediction, the temperatures between 21.7° and 32.4° have Pr(cnt >= 5000|temp) larger than 0.5. We can also check it looking at the plot.
+Looking at the returned prediction, the temperatures between `r round(x.min*100)/100`° and `r round(x.max*100)/100`° have Pr(cnt >= 5000|temp) larger than 0.5. We can also check it looking at the plot.
 
 ### b) Choose the parameter df by k-fold log-likelihood cross validation with k = 5 and using df.v = 3:15 as the set of possible values for df.
 ```{r}
@@ -124,19 +124,22 @@ lines(result$df.v, result$k.cv)
 abline(v = selected_df, col="8", lty=2)
 
 ```
-The optimal number of degree of freedoms obtained by k-fold log-likelihood cross validation is df=5.
+The optimal number of degree of freedoms obtained by k-fold log-likelihood cross validation is df= `r selected_df`. This value may vary among different executions due the permutations we have made.
 
 ```{r}
-IRWLS.sp <- logistic.IRWLS.splines(x=x, y=y, x.new = x, df=selected_df)
+IRWLS.sp.df <- logistic.IRWLS.splines(x=x, y=y, x.new = x, df=selected_df)
 
 plot(x, y)
-lines(x,IRWLS.sp$fitted.values,col=2)
+lines(x,IRWLS.sp$fitted.values,col=5)
+lines(x,IRWLS.sp.df$fitted.values,col=2)
 abline(h=0.5, col=8, lty=2)
 
-x.05 <- x[as.numeric(IRWLS.sp$predicted.values >= 0.5) == 1]
+x.05 <- x[as.numeric(IRWLS.sp.df$predicted.values >= 0.5) == 1]
 x.min <- min(x.05)
 x.max <- max(x.05)
 print(sprintf("min: %f,  max: %f", x.min, x.max))
 ```
-In comparison to the previous result, the optimised spline looks smoother while having almost the same range of x [20.7, 32.6] for which Pr(cnt >= 5000|temp) larger than 0.5.
+In comparison to the previous result (cyan line), the optimised spline has more peaks while having almost the same range of x [`r round(x.min*100)/100`, `r round(x.max*100)/100`] for which Pr(cnt >= 5000|temp) larger than 0.5.
+
+Overall, both curves appear quite similar.
 
