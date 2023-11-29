@@ -43,6 +43,7 @@ We have used 134 knots.
 ### d) Give a graphic with the scatter plot and the estimated regression function $\hat{m}$(instant).
 ```{r}
 plot(instant, cnt, col=8)
+#abline(v=sm.sp$fit$min+sm.sp$fit$knot*sm.sp$fit$range, col=8, lty=2)
 lines(sm.sp, col=2, lwd=2)
 ```
 
