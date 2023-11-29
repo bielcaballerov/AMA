@@ -78,7 +78,7 @@ Looking at the returned prediction, the temperatures between 21.7° and 32.4° h
 
 ### b) Choose the parameter df by k-fold log-likelihood cross validation with k = 5 and using df.v = 3:15 as the set of possible values for df.
 ```{r}
-k.fold.ll.cv <- function(x,y,df,k=5){
+k.fold.cv <- function(x,y,df,k=5){
     n <- length(x)
     Ik <- floor((0:(n-1))/(n/k))+1
     cum_sum <- 0
@@ -87,7 +87,6 @@ k.fold.ll.cv <- function(x,y,df,k=5){
         y.i <- y[Ik==i]
         pred <- logistic.IRWLS.splines(x[Ik!=i], y[Ik!=i], 
                                        x.new=x[Ik==i], df=df)$predicted.values
-        #cum_sum <- cum_sum + sum((y.i-pred)^2)
         cum_sum <- cum_sum + sum(y.i*log(pred/(1-pred)) + log(1-pred))
     }
     k.cv <- cum_sum/n
@@ -97,7 +96,7 @@ k.fold.ll.cv <- function(x,y,df,k=5){
 ```
 
 ```{r}
-df.k.fold.ll.cv <- function(x,y,df.v,k=5){
+df.k.fold.cv <- function(x,y,df.v,k=5){
     n <- length(x)
     perm <- sample(1:n)
     xperm <- x[perm]
@@ -106,7 +105,7 @@ df.k.fold.ll.cv <- function(x,y,df.v,k=5){
     k.cv <- df.v*0
     for (i in (1:length(df.v))){
         df <- df.v[i]
-        k.cv[i] <- k.fold.ll.cv(x=xperm, y=yperm, df, k)
+        k.cv[i] <- k.fold.cv(x=xperm, y=yperm, df, k)
     }
     return(list(k=k,df.v=df.v,k.cv=k.cv))
 }
@@ -116,7 +115,7 @@ df.k.fold.ll.cv <- function(x,y,df.v,k=5){
 
 ```{r}
 df.v <- 3:15
-result <- df.k.fold.ll.cv(x,y,df.v)
+result <- df.k.fold.cv(x,y,df.v)
 
 selected_df <- result$df.v[which.max(result$k.cv)]
 
@@ -125,6 +124,7 @@ lines(result$df.v, result$k.cv)
 abline(v = selected_df, col="8", lty=2)
 
 ```
+The optimal number of degree of freedoms obtained by k-fold log-likelihood cross validation is df=5.
 
 ```{r}
 IRWLS.sp <- logistic.IRWLS.splines(x=x, y=y, x.new = x, df=selected_df)
@@ -132,4 +132,11 @@ IRWLS.sp <- logistic.IRWLS.splines(x=x, y=y, x.new = x, df=selected_df)
 plot(x, y)
 lines(x,IRWLS.sp$fitted.values,col=2)
 abline(h=0.5, col=8, lty=2)
+
+x.05 <- x[as.numeric(IRWLS.sp$predicted.values >= 0.5) == 1]
+x.min <- min(x.05)
+x.max <- max(x.05)
+print(sprintf("min: %f,  max: %f", x.min, x.max))
 ```
+In comparison to the previous result, the optimised spline looks smoother while having almost the same range of x [20.7, 32.6] for which Pr(cnt >= 5000|temp) larger than 0.5.
+
