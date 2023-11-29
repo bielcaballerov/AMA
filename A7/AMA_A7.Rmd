@@ -1,0 +1,44 @@
+---
+title: "Smoothing and regression splines"
+author: "Biel Caballero Vergés, Svenja Menzenbach and Kleber Enrique Reyes Illescas"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading libraries, include=FALSE}
+library(sm)
+```
+
+# Hirsutism dataset
+
+## GAMs for hirsutism data
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
