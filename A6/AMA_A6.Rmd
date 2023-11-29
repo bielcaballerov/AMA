@@ -16,7 +16,7 @@ library(sm)
 ```
 
 ### Load data
-```{r loading data}
+```{r loading data, include=FALSE}
 load("bikes.Washington.Rdata")
 attach(bikes)
 ```
@@ -56,43 +56,80 @@ cnt.5000 <- as.numeric(cnt >= 5000)
 
 ### a) Use the function logistic.IRWLS.splines to fit the non-parametric binary regression cnt.5000 as a function of the temperature, using df=6. In which range of temperatures is Pr(cnt >= 5000|temp) larger than 0,5?
 ```{r}
-IRWLS.sp <- logistic.IRWLS.splines(x=temp, y=cnt.5000, x.new=temp, df=6, plts=TRUE)
+# Sort data according to x
+x <- temp
+y <- cnt.5000
+sx <- sort(x,index.return =TRUE)
+x <- sx$x
+y <- y[sx$ix]
+
+IRWLS.sp <- logistic.IRWLS.splines(x=x, y=y, x.new = x, df=6)
+
+plot(x, y)
+lines(x,IRWLS.sp$fitted.values,col=2)
+abline(h=0.5, col=8, lty=2)
+
 x.05 <- x[as.numeric(IRWLS.sp$predicted.values >= 0.5) == 1]
-x.05
 x.min <- min(x.05)
 x.max <- max(x.05)
-print(sprintf("min: %d,  max: %d", x.min, x.max))
+print(sprintf("min: %f,  max: %f", x.min, x.max))
 ```
-Looking at the plot, the temperatures between 20° and 35° have Pr(cnt >= 5000|temp) larger than 0.5. Except for the first plot, here we cannot fully observe the range. When determining the temperature from the returned prediction the range of x is between 21° and 75°. 
+Looking at the returned prediction, the temperatures between 21.7° and 32.4° have Pr(cnt >= 5000|temp) larger than 0.5. We can also check it looking at the plot.
 
 ### b) Choose the parameter df by k-fold log-likelihood cross validation with k = 5 and using df.v = 3:15 as the set of possible values for df.
 ```{r}
-# it is not log likelihood yet !!!!! (I changed  function from A4)
-k.fold.ll.cv <- function(x,y,k=5,df){
-  n <- length(x)
-  Ik <- floor((0:(n-1))/(n/k))+1
-  ssr <- 0
-  for (i in (1:k)){
-    y.i <- y[Ik==i]
-    aux <- IRWLS.sp <- logistic.IRWLS.splines(x[Ik!=i], y[Ik!=i],                                    x.new=x[Ik!=i], df=df,plts=FALSE)
-    ssr <- ssr + sum((y.i-aux$predicted.values)^2)
-  }
-  k.cv <- ssr/n
-  return(k.cv)
+k.fold.ll.cv <- function(x,y,df,k=5){
+    n <- length(x)
+    Ik <- floor((0:(n-1))/(n/k))+1
+    cum_sum <- 0
+  
+    for (i in (1:k)){
+        y.i <- y[Ik==i]
+        pred <- logistic.IRWLS.splines(x[Ik!=i], y[Ik!=i], 
+                                       x.new=x[Ik==i], df=df)$predicted.values
+        #cum_sum <- cum_sum + sum((y.i-pred)^2)
+        cum_sum <- cum_sum + sum(y.i*log(pred/(1-pred)) + log(1-pred))
+    }
+    k.cv <- cum_sum/n
+    return(k.cv)
+}
+
+```
+
+```{r}
+df.k.fold.ll.cv <- function(x,y,df.v,k=5){
+    n <- length(x)
+    perm <- sample(1:n)
+    xperm <- x[perm]
+    yperm <- y[perm]
+  
+    k.cv <- df.v*0
+    for (i in (1:length(df.v))){
+        df <- df.v[i]
+        k.cv[i] <- k.fold.ll.cv(x=xperm, y=yperm, df, k)
+    }
+    return(list(k=k,df.v=df.v,k.cv=k.cv))
 }
 ```
+
 
 
 ```{r}
-df.v = 3:15
+df.v <- 3:15
+result <- df.k.fold.ll.cv(x,y,df.v)
 
-for (df in df.v){
-  k.fold.ll.cv(temp, cnt.5000, df)
-}
+selected_df <- result$df.v[which.max(result$k.cv)]
+
+plot(result$df.v, result$k.cv)
+lines(result$df.v, result$k.cv)
+abline(v = selected_df, col="8", lty=2)
+
 ```
 
+```{r}
+IRWLS.sp <- logistic.IRWLS.splines(x=x, y=y, x.new = x, df=selected_df)
 
-
-
-
-
+plot(x, y)
+lines(x,IRWLS.sp$fitted.values,col=2)
+abline(h=0.5, col=8, lty=2)
+```
