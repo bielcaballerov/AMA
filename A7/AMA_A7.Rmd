@@ -13,20 +13,52 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r loading libraries, include=FALSE}
 library(sm)
+library(mgcv)
 ```
 
 # Hirsutism dataset
 
 ## GAMs for hirsutism data
+```{r}
+hirs <- read.table("hirsutism.dat",header=T, sep="\t",fill=TRUE)
+
+#summary(hirs)
+attach(hirs)
+```
+```{r}
+gam_0 <- gam(FGm12 ~ FGm0 + SysPres + DiaPres + height + weight + Treatment)
+summary(gam_0)
+```
 
 ```{r}
+gam_1 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_1)
+```
 
+```{r}
+gam_2 <- gam(FGm12 ~ te(FGm0, SysPres, DiaPres, height, weight, Treatment, k=4))
+summary(gam_2)
+```
+
+```{r}
+plot(gam_1, residuals = TRUE,
+     shade=TRUE, cex=2, lwd=2, 
+     shift = gam_1$coefficients[1],
+     seWithMean=TRUE,
+     main=paste("Equiv. no. params.=",
+                round(sum(gam_1$edf),2)))
+```
+```{r}
+vis.gam(gam_1,view=c("FGm0","Treatment"),
+        theta = 40, phi = 40, r = sqrt(3), d = 1,)
 ```
 
 
+## Anova tests
 
-
-
+```{r}
+anova(gam_0,gam_1,test="F")
+```
 
 
 
