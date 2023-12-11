@@ -53,8 +53,33 @@ summary(gam_0)
 ```
 
 ```{r}
-gam_1 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+gam_1 <- gam(FGm12 ~ s(FGm0) + s(FGm3) + s(FGm6) + s(SysPres) + s(DiaPres) + s(height) + s(weight), data=hirs)
 summary(gam_1)
+```
+
+It seems that FG3 and SysPres are both linear. FGm6 and height are quadratic
+
+```{r}
+plot(gam_1,residuals=TRUE, shade=TRUE, cex=2, lwd=2)
+```
+```{r}
+vis.gam(gam_1, view=c("FGm0","weight"), plot.type = "persp")
+```
+
+```{r}
+vis.gam(gam_1, view=c("height","weight"), plot.type = "persp")
+```
+
+```{r}
+gam.check(gam_1)
+```
+
+
+
+
+```{r}
+gam_2 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_2)
 ```
 
 ```{r}
