@@ -25,6 +25,28 @@ hirs <- read.table("hirsutism.dat",header=T, sep="\t",fill=TRUE)
 #summary(hirs)
 attach(hirs)
 ```
+
+```{r}
+old.par<-par(mfrow=c(3,3))
+for (j in 2:9) if (j != 5) hist(hirs[,j],main=names(hirs)[j])
+par(old.par)
+```
+
+```{r}
+apply(hirs[,-c(1,5)],2,sd, na.rm = T) # sd: standard deviation
+```
+
+```{r}
+apply(hirs[,-c(1,5)],2,function(x){diff(range(x, na.rm = T))})
+```
+
+Possible groups of variables:
+- FGm0, FGm3, FGm6
+- SysPres, weigth
+- DiaPres
+- height
+
+
 ```{r}
 gam_0 <- gam(FGm12 ~ FGm0 + SysPres + DiaPres + height + weight + Treatment)
 summary(gam_0)
