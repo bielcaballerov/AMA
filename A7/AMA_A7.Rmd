@@ -65,8 +65,6 @@ Possible groups of variables:
 
 This first model is not good, since the results of the significance test were negative and the plots from the gam.check are not as expected.
 
-
-
 ```{r}
 # multiple linear regression
 gam_0.1 <- gam(FGm12 ~ FGm0 + SysPres + DiaPres + height + weight + Treatment)
@@ -199,8 +197,9 @@ plot(gam_5.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 ```{r}
 gam.check(gam_5.2)
 ```
+
 ```{r}
-gam_6.1 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight))
+gam_6.1 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight))
 summary(gam_6.1)
 ```
 ```{r}
@@ -210,17 +209,32 @@ plot(gam_6.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 gam.check(gam_6.1)
 ```
 
+
 ```{r}
-plot(gam_1, residuals = TRUE,
-     shade=TRUE, cex=2, lwd=2, 
-     shift = gam_1$coefficients[1],
-     seWithMean=TRUE,
-     main=paste("Equiv. no. params.=",
-                round(sum(gam_1$edf),2)))
+gam_7.1 <- gam(FGm12 ~ FGm0 + SysPres + ti(DiaPres,weight) + s(height, by=Treatment))
+summary(gam_7.1)
 ```
 ```{r}
-vis.gam(gam_1,view=c("FGm0","Treatment"),
+plot(gam_7.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_7.1)[1])
+```
+```{r}
+gam.check(gam_7.1)
+```
+
+
+```{r}
+plot(gam_1.1, residuals = TRUE,
+     shade=TRUE, cex=2, lwd=2, 
+     shift = gam_1.1$coefficients[1],
+     seWithMean=TRUE,
+     main=paste("Equiv. no. params.=",
+                round(sum(gam_1.1$edf),2)))
+```
+```{r}
+vis.gam(gam_6.1,view=c("FGm0","Treatment"),
         theta = 40, phi = 40, r = sqrt(3), d = 1,)
+vis.gam(gam_6.1, view=c("FGm0","Treatment"), plot.type = "persp", theta=40, phi=40)
+vis.gam(gam_6.1, view=c("FGm0","weight"), plot.type = "contour")
 ```
 
 
@@ -271,18 +285,25 @@ Gam_5.1 better
 
 
 ```{r}
-anova(gam_5.1, gam_6.1)
+anova(gam_5.1,gam_6.1)
 ```
 
 Gam_6.1 better
 
 ```{r}
-anova(gam_1, gam_3)
+anova(gam_7.1, gam_6.1)
 ```
 
 
+```{r}
+anova(gam_2.1, gam_3.2, gam_4.3, gam_5.2, gam_3.1, gam_5.1, gam_6.1, test="F")
+```
+Looking at the anova of all models that we fitted, we could conclude that the best model is the gam_3.1. We select this model as the best one because is the one with the lowest deviance. 
 
 
+```{r}
+anova(gam_3.1,gam_6.1,test="F")
+```
 
 
 
