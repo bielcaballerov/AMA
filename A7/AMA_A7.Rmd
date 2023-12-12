@@ -143,7 +143,7 @@ gam.check(gam_3.2)
 ```
 
 ```{r}
-# semiparametric model - SysPres (low df at model 0)
+# semiparametric model - SysPres (low df at model 1.1)
 gam_4.1 <- gam(FGm12 ~ s(FGm0, by=Treatment) + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
 summary(gam_4.1)
 ```
@@ -154,7 +154,8 @@ plot(gam_4.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 gam.check(gam_4.1)
 ```
 ```{r}
-gam_4.2 <- gam(FGm12 ~ s(FGm0) + SysPres + s(DiaPres) + s(height) + s(weight))
+# semiparametric model - FGm0 (low df at model 1.1)
+gam_4.2 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
 summary(gam_4.2)
 ```
 ```{r}
@@ -162,6 +163,17 @@ plot(gam_4.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 ```
 ```{r}
 gam.check(gam_4.2)
+```
+```{r}
+# semiparametric model - DiaPres (low df at model 1.1)
+gam_4.3 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + DiaPres + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_4.3)
+```
+```{r}
+plot(gam_4.3,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_4.3)[1])
+```
+```{r}
+gam.check(gam_4.3)
 ```
 
 ```{r}
@@ -177,8 +189,8 @@ gam.check(gam_5.1)
 ```
 
 ```{r}
-# semiparametric model - FGmO + SysPres
-gam_5.2 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres) + s(height) + s(weight))
+# semiparametric model - FGmO + DiaPres
+gam_5.2 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + DiaPres + s(height, by=Treatment) + s(weight, by=Treatment))
 summary(gam_5.2)
 ```
 ```{r}
@@ -187,7 +199,16 @@ plot(gam_5.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 ```{r}
 gam.check(gam_5.2)
 ```
-
+```{r}
+gam_6.1 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight))
+summary(gam_6.1)
+```
+```{r}
+plot(gam_6.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_6.1)[1])
+```
+```{r}
+gam.check(gam_6.1)
+```
 
 ```{r}
 plot(gam_1, residuals = TRUE,
@@ -226,10 +247,15 @@ Gam_1.1 better
 anova(gam_4.1,gam_4.2,test="F")
 ```
 
-Gam_4.1 better
+Gam_4.2 better
 
 ```{r}
-anova(gam_4.1,gam_1.1,test="F")
+anova(gam_4.2,gam_4.3,test="F")
+```
+Gam_4.2 better
+
+```{r}
+anova(gam_4.2,gam_1.1,test="F")
 ```
 Gam_1.1 better
 
@@ -245,8 +271,11 @@ Gam_5.1 better
 
 
 ```{r}
-anova(gam_1, gam_2)
+anova(gam_5.1, gam_6.1)
 ```
+
+Gam_6.1 better
+
 ```{r}
 anova(gam_1, gam_3)
 ```
