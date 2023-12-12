@@ -47,45 +47,33 @@ Possible groups of variables:
 - height
 
 
-```{r}
-gam_0 <- gam(FGm12 ~ FGm0 + SysPres + DiaPres + height + weight + Treatment)
-summary(gam_0)
-```
 
-```{r} 
-# we should not include FGm3 and FGm6
-gam_1 <- gam(FGm12 ~ s(FGm0) + s(FGm3) + s(FGm6) + s(SysPres) + s(DiaPres) + s(height) + s(weight), data=hirs)
-summary(gam_1)
-```
-
-It seems that FG3 and SysPres are both linear. FGm6 and height are quadratic
-
-```{r}
-plot(gam_1,residuals=TRUE, shade=TRUE, cex=2, lwd=2)
-```
-```{r}
-vis.gam(gam_1, view=c("FGm0","weight"), plot.type = "persp")
-```
-
-```{r}
-vis.gam(gam_1, view=c("height","weight"), plot.type = "persp")
-```
-
-```{r}
-gam.check(gam_1)
-```
 
 
 ```{r}
-gam_2 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
-summary(gam_2)
+#plot(gam_1,residuals=TRUE, shade=TRUE, cex=2, lwd=2)
 ```
+```{r}
+#vis.gam(gam_1, view=c("FGm0","weight"), plot.type = "persp")
+```
+```{r}
+#vis.gam(gam_1, view=c("height","weight"), plot.type = "persp")
+```
+```{r}
+#gam.check(gam_1)
+```
+
+This first model is not good, since the results of the significance test were negative and the plots from the gam.check are not as expected.
+
 
 
 ```{r}
 # multiple linear regression
 gam_0.1 <- gam(FGm12 ~ FGm0 + SysPres + DiaPres + height + weight + Treatment)
 summary(gam_0.1)
+```
+```{r}
+plot(gam_0.1, all.terms=TRUE)
 ```
 
 ```{r}
@@ -95,19 +83,85 @@ summary(gam_1.1)
 ```
 
 ```{r}
+plot(gam_1.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_1.1)[1])
+```
+```{r}
+gam.check(gam_1.1)
+```
+```{r} 
+gam_1.2 <- gam(FGm12 ~ s(FGm0) + s(SysPres) + s(DiaPres) + s(height) + s(weight), data=hirs)
+summary(gam_1.2)
+```
+It seems that SysPres and height are both linear.
+
+```{r}
+plot(gam_1.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_1.1)[1])
+```
+```{r}
+gam.check(gam_1.2)
+```
+
+
+```{r}
 # Generalized nonparametric multiple regression model
 gam_2.1 <- gam(FGm12 ~ te(FGm0, weight)) # SysPres, DiaPres, height, Treatment)
 summary(gam_2.1)
 ```
 ```{r}
+plot(gam_2.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_2.1)[1])
+```
+```{r}
+gam.check(gam_2.1)
+```
+
+
+
+
+```{r}
 # semiparametric model - FGmO
 gam_3.1 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
 summary(gam_3.1)
 ```
+
+```{r}
+plot(gam_3.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_3.1)[1])
+```
+```{r}
+gam.check(gam_3.1)
+```
+```{r}
+# semiparametric model - FGmO
+gam_3.2 <- gam(FGm12 ~ FGm0 + s(SysPres) + s(DiaPres) + s(height) + s(weight))
+summary(gam_3.2)
+```
+
+```{r}
+plot(gam_3.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_3.2)[1])
+```
+```{r}
+gam.check(gam_3.2)
+```
+
 ```{r}
 # semiparametric model - SysPres (low df at model 0)
-gam_4.1 <- gam(FGm12 ~ s(FGm0s, by=Treatment) + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+gam_4.1 <- gam(FGm12 ~ s(FGm0, by=Treatment) + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
 summary(gam_4.1)
+```
+```{r}
+plot(gam_4.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_4.1)[1])
+```
+```{r}
+gam.check(gam_4.1)
+```
+```{r}
+gam_4.2 <- gam(FGm12 ~ s(FGm0) + SysPres + s(DiaPres) + s(height) + s(weight))
+summary(gam_4.2)
+```
+```{r}
+plot(gam_4.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_4.1)[1])
+```
+```{r}
+gam.check(gam_4.2)
 ```
 
 ```{r}
@@ -115,6 +169,25 @@ summary(gam_4.1)
 gam_5.1 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
 summary(gam_5.1)
 ```
+```{r}
+plot(gam_5.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_5.1)[1])
+```
+```{r}
+gam.check(gam_5.1)
+```
+
+```{r}
+# semiparametric model - FGmO + SysPres
+gam_5.2 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres) + s(height) + s(weight))
+summary(gam_5.2)
+```
+```{r}
+plot(gam_5.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_5.2)[1])
+```
+```{r}
+gam.check(gam_5.2)
+```
+
 
 ```{r}
 plot(gam_1, residuals = TRUE,
@@ -133,12 +206,48 @@ vis.gam(gam_1,view=c("FGm0","Treatment"),
 ## Anova tests
 
 ```{r}
-anova(gam_0,gam_1,test="F")
-anova(gam_0,gam_2,test="F")
-anova(gam_0,gam_3,test="F")
-#anova(gam_0,gam_4,test="F")
-#anova(gam_0,gam_5,test="F")
+anova(gam_0.1,gam_1.1,test="F")
+```
+Gam_1.1 better
+```{r}
+anova(gam_0.1,gam_1.2,test="F")
+```
+Gam_1.2 better
+```{r}
+anova(gam_1.2,gam_1.1,test="F")
+```
+Gam_1.1 better (with treatment)
+```{r}
+anova(gam_2.1,gam_1.1,test="F")
+```
+
+Gam_1.1 better
+```{r}
+anova(gam_4.1,gam_4.2,test="F")
+```
+
+Gam_4.1 better
+
+```{r}
+anova(gam_4.1,gam_1.1,test="F")
+```
+Gam_1.1 better
+
+```{r}
+anova(gam_5.1,gam_5.2,test="F")
+```
+Gam_5.1 better
+
+```{r}
+anova(gam_5.1,gam_1.1,test="F")
+```
+Gam_5.1 better
+
+
+```{r}
 anova(gam_1, gam_2)
+```
+```{r}
 anova(gam_1, gam_3)
 ```
 
