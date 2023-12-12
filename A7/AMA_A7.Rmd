@@ -52,7 +52,8 @@ gam_0 <- gam(FGm12 ~ FGm0 + SysPres + DiaPres + height + weight + Treatment)
 summary(gam_0)
 ```
 
-```{r}
+```{r} 
+# we should not include FGm3 and FGm6
 gam_1 <- gam(FGm12 ~ s(FGm0) + s(FGm3) + s(FGm6) + s(SysPres) + s(DiaPres) + s(height) + s(weight), data=hirs)
 summary(gam_1)
 ```
@@ -75,16 +76,44 @@ gam.check(gam_1)
 ```
 
 
-
-
 ```{r}
 gam_2 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
 summary(gam_2)
 ```
 
+
 ```{r}
-gam_2 <- gam(FGm12 ~ te(FGm0, SysPres, DiaPres, height, weight, Treatment, k=4))
-summary(gam_2)
+# multiple linear regression
+gam_0.1 <- gam(FGm12 ~ FGm0 + SysPres + DiaPres + height + weight + Treatment)
+summary(gam_0.1)
+```
+
+```{r}
+# generative additive model
+gam_1.1 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_1.1)
+```
+
+```{r}
+# Generalized nonparametric multiple regression model
+gam_2.1 <- gam(FGm12 ~ te(FGm0, weight)) # SysPres, DiaPres, height, Treatment)
+summary(gam_2.1)
+```
+```{r}
+# semiparametric model - FGmO
+gam_3.1 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_3.1)
+```
+```{r}
+# semiparametric model - SysPres (low df at model 0)
+gam_4.1 <- gam(FGm12 ~ s(FGm0s, by=Treatment) + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_4.1)
+```
+
+```{r}
+# semiparametric model - FGmO + SysPres
+gam_5.1 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_5.1)
 ```
 
 ```{r}
@@ -105,6 +134,12 @@ vis.gam(gam_1,view=c("FGm0","Treatment"),
 
 ```{r}
 anova(gam_0,gam_1,test="F")
+anova(gam_0,gam_2,test="F")
+anova(gam_0,gam_3,test="F")
+#anova(gam_0,gam_4,test="F")
+#anova(gam_0,gam_5,test="F")
+anova(gam_1, gam_2)
+anova(gam_1, gam_3)
 ```
 
 
