@@ -127,9 +127,34 @@ plot(gam_2.3,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 gam.check(gam_2.3)
 ```
 
+We also set two of them linear:
 ```{r}
 # semiparametric model - FGmO + SysPres
-gam_4.1 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+gam_3.1 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_3.1)
+```
+```{r}
+plot(gam_3.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_3.1)[1])
+```
+```{r}
+gam.check(gam_3.1)
+```
+
+```{r}
+# semiparametric model - FGmO + DiaPres
+gam_3.2 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + DiaPres + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_3.2)
+```
+```{r}
+plot(gam_3.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_3.2)[1])
+```
+```{r}
+gam.check(gam_3.2)
+```
+
+Here we removed the factor from weight.
+```{r}
+gam_4.1 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight))
 summary(gam_4.1)
 ```
 ```{r}
@@ -138,45 +163,24 @@ plot(gam_4.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 ```{r}
 gam.check(gam_4.1)
 ```
-
+Here we tried a new approach and combined variables in a smoothing function. Also we removed DiaPress which is reasonable as it is linear correlated looking at the correlation plot at the beginning of the file.
 ```{r}
-# semiparametric model - FGmO + DiaPres
-gam_4.2 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + DiaPres + s(height, by=Treatment) + s(weight, by=Treatment))
-summary(gam_4.2)
-```
-```{r}
-plot(gam_4.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_4.2)[1])
-```
-```{r}
-gam.check(gam_4.2)
-```
-
-```{r}
-gam_5.1 <- gam(FGm12 ~ FGm0 + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight))
+gam_5.1 <- gam(FGm12 ~ SysPres +  s(FGm0,SysPres, by=Treatment, k=5) + s(height, k=25, bs="cr") + s(weight,fx=TRUE,bs="cr"))
 summary(gam_5.1)
-```
-```{r}
-plot(gam_5.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_5.1)[1])
-```
-```{r}
-gam.check(gam_5.1)
-```
-
-```{r}
-gam_6.1 <- gam(FGm12 ~ SysPres +  s(FGm0,SysPres, by=Treatment, k=5) + s(height, k=25, bs="cr") + s(weight,fx=TRUE,bs="cr"))
-summary(gam_6.1)
 ```
 Since the interaction is taking into account the different factors from Treatment we had a lot of uncertainty
 ```{r}
-plot(gam_6.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_6.1)[1])
+plot(gam_5.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_6.1)[1])
 ```
+This model has a comparably high value for deviance explained and the partial plots are not constant as for many previous models.
+
 ```{r}
-vis.gam(gam_6.1, view = c("FGm0","SysPres"), plot.type = "persp", se=2, 
+vis.gam(gam_5.1, view = c("FGm0","SysPres"), plot.type = "persp", se=2, 
             theta = 140,  phi=30)
 ```
 
 ```{r}
-gam.check(gam_6.1)
+gam.check(gam_5.1)
 ```
 
 
@@ -189,10 +193,10 @@ plot(gam_1.1, residuals = TRUE,
                 round(sum(gam_1.1$edf),2)))
 ```
 ```{r}
-vis.gam(gam_5.1,view=c("FGm0","Treatment"),
+vis.gam(gam_4.1,view=c("FGm0","Treatment"),
         theta = 40, phi = 40, r = sqrt(3), d = 1,)
-vis.gam(gam_5.1, view=c("FGm0","Treatment"), plot.type = "persp", theta=40, phi=40)
-vis.gam(gam_5.1, view=c("FGm0","weight"), plot.type = "contour")
+vis.gam(gam_4.1, view=c("FGm0","Treatment"), plot.type = "persp", theta=40, phi=40)
+vis.gam(gam_4.1, view=c("FGm0","weight"), plot.type = "contour")
 ```
 
 
@@ -210,65 +214,65 @@ Gam_1.2 better
 anova(gam_1.2,gam_1.1,test="F")
 ```
 Gam_1.1 better (with treatment)
+
 ```{r}
-anova(gam_2.1,gam_1.1,test="F")
+anova(gam_2.1,gam_2.2,test="F")
 ```
 
+Gam_2.2 better
+
+```{r}
+anova(gam_2.2,gam_2.3,test="F")
+```
+Gam_2.2 better
+
+```{r}
+anova(gam_2.2,gam_1.1,test="F")
+```
 Gam_1.1 better
+
 ```{r}
 anova(gam_3.1,gam_3.2,test="F")
 ```
-
-Gam_3.2 better
-
-```{r}
-anova(gam_3.2,gam_3.3,test="F")
-```
-Gam_3.2 better
+Gam_3.1 better
 
 ```{r}
-anova(gam_3.2,gam_1.1,test="F")
+anova(gam_3.1,gam_1.1,test="F")
 ```
-Gam_1.1 better
+Gam_3.1 better
+
 
 ```{r}
-anova(gam_4.1,gam_4.2,test="F")
+anova(gam_3.1,gam_4.1,test="F")
 ```
+
 Gam_4.1 better
 
 ```{r}
-anova(gam_4.1,gam_1.1,test="F")
-```
-Gam_4.1 better
-
-
-```{r}
-anova(gam_4.1,gam_5.1,test="F")
+anova(gam_4.1, gam_5.1,test="F")
 ```
 
 Gam_5.1 better
 
-```{r}
-anova(gam_5.1, gam_6.1,test="F")
-```
-
-Gam_6.1 better
-```{r}
-anova(gam_2.1, gam_3.2, gam_3.1, gam_5.1, gam_6.1, test="F")
-```
-Looking at the anova of all models that we fitted, we could conclude that the best model is the gam_3.1. We select this model as the best one because is the one with the lowest deviance. 
+Comparing the models with anova, the model gam_5.1 is the best obtained model out of them.
 
 
-
+## Compare plot of a "bad" and a "good" model
 ```{r}
 vis.gam(gam_0.1,view=c("FGm0","weight"),
         theta = 40, phi = 25, r = sqrt(3), d = 1)
 ```
 ```{r}
-vis.gam(gam_6.1,view=c("FGm0","weight"),
+vis.gam(gam_3.1,view=c("FGm0","weight"),
         theta = 40, phi = 25, r = sqrt(3), d = 1)
 ```
 
+
+```{r}
+vis.gam(gam_5.1,view=c("FGm0","weight"),
+        theta = 40, phi = 25, r = sqrt(3), d = 1)
+```
+We can see that the better performing model is more complex. The complexity might be necessary to represent the relation of the variables to our prediction value properly. 
 
 
 
