@@ -166,14 +166,24 @@ plot(gam_5.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 ```{r}
 gam.check(gam_5.1)
 ```
-
 ```{r}
-gam_6.1 <- gam(FGm12 ~ SysPres + s(FGm0,SysPres, by=Treatment) + s(height, k=25) + s(weight))
+gam_6.1 <- gam(FGm12 ~ SysPres + s(FGm0,SysPres, by=Treatment, k=10) + te(height, k=25, bs="cr") + te(weight, bs="cr") + ti(height, weight))
 summary(gam_6.1)
 ```
+
+```{r}
+gam_6.1 <- gam(FGm12 ~ SysPres + s(FGm0,SysPres, by=Treatment, k=10) + s(height, k=25, bs="cr") + s(weight, bs="cr"))
+summary(gam_6.1)
+```
+Since the interaction is taking into account the different factors from Treatment we had a lot of uncertaintly
 ```{r}
 plot(gam_6.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_6.1)[1])
 ```
+```{r}
+vis.gam(gam_6.1, view = c("FGm0","SysPres"), plot.type = "persp", se=2, 
+            theta = 150,  phi=30)
+```
+
 ```{r}
 gam.check(gam_6.1)
 ```
