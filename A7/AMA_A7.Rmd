@@ -166,22 +166,18 @@ plot(gam_5.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 ```{r}
 gam.check(gam_5.1)
 ```
-```{r}
-gam_6.1 <- gam(FGm12 ~ SysPres + s(FGm0,SysPres, by=Treatment, k=10) + te(height, k=25, bs="cr") + te(weight, bs="cr") + ti(height, weight))
-summary(gam_6.1)
-```
 
 ```{r}
-gam_6.1 <- gam(FGm12 ~ SysPres + s(FGm0,SysPres, by=Treatment, k=10) + s(height, k=25, bs="cr") + s(weight, bs="cr"))
+gam_6.1 <- gam(FGm12 ~ SysPres +  s(FGm0,SysPres, by=Treatment, k=5) + s(height, k=25, bs="cr") + s(weight,fx=TRUE,bs="cr"))
 summary(gam_6.1)
 ```
-Since the interaction is taking into account the different factors from Treatment we had a lot of uncertaintly
+Since the interaction is taking into account the different factors from Treatment we had a lot of uncertainty
 ```{r}
 plot(gam_6.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_6.1)[1])
 ```
 ```{r}
 vis.gam(gam_6.1, view = c("FGm0","SysPres"), plot.type = "persp", se=2, 
-            theta = 150,  phi=30)
+            theta = 140,  phi=30)
 ```
 
 ```{r}
@@ -261,16 +257,13 @@ Gam_5.1 better
 anova(gam_5.1, gam_6.1,test="F")
 ```
 
-
+Gam_6.1 better
 ```{r}
-anova(gam_2.1, gam_3.2, gam_4.3, gam_5.2, gam_3.1, gam_5.1, gam_6.1, test="F")
+anova(gam_2.1, gam_3.2, gam_3.1, gam_5.1, gam_6.1, test="F")
 ```
 Looking at the anova of all models that we fitted, we could conclude that the best model is the gam_3.1. We select this model as the best one because is the one with the lowest deviance. 
 
 
-```{r}
-anova(gam_5.1,gam_6.1,test="F")
-```
 
 
 
