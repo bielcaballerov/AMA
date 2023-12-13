@@ -46,7 +46,7 @@ apply(hirs[,-c(1,3,4,5)],2,function(x){diff(range(x, na.rm = T))})
 Possible groups of variables:
 - SysPres, weigth
 
-
+At first we will build a linear model including all variables.
 ```{r}
 # multiple linear regression
 gam_0.1 <- gam(FGm12 ~ FGm0 + SysPres + DiaPres + height + weight + Treatment)
@@ -55,6 +55,9 @@ summary(gam_0.1)
 ```{r}
 plot(gam_0.1, all.terms=TRUE)
 ```
+All variables show a nearly constant partial which concludes to a bad model as no variable seems to have an effect on the outcome.
+
+Next we will try a modell with only smoothing functions and using Treatment as a factor.
 
 ```{r}
 # generative additive model
@@ -68,10 +71,12 @@ plot(gam_1.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 ```{r}
 gam.check(gam_1.1)
 ```
-This first model is not good, since the results of the significance test were negative and the plots from the gam.check are not as expected.
+The partial plots are still quite constant. Hence we didn't find a good model yet. However, the deviance explained, giving insight about the quality of the fit, is more than twice as high as in the previous models.
 
+
+We also create a model like gam_1.1 but without Treatment as factor, to see what difference it makes.
 ```{r} 
-gam_1.2 <- gam(FGm12 ~ s(FGm0) + s(SysPres) + s(DiaPres) + s(height) + s(weight))
+gam_1.2 <- gam(FGm12 ~ s(FGm0) + s(SysPres) + s(DiaPres) + s(height) + s(weight) )
 summary(gam_1.2)
 ```
 
@@ -83,10 +88,14 @@ plot(gam_1.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 gam.check(gam_1.2)
 ```
 
+Now the partials show us less constant plots, but the deviance explained is less than using treatment as factor, letting us conclude that it is good too use Treatment as factor.
+
+
+Further, we will create semiparametric models. We look at the effective degree of freedoms of model 1.1.  SysPres, FGm0 and DiaPres have a edf close to 1 indicating a possible linear relationship to our prediction. It might improve the model to simplify it and incoparate this variables as linear terms. At first we set each of them linear respectively while letting the other parameters wrapped by a smoothing function.
 
 ```{r}
-# Generalized nonparametric multiple regression model
-gam_2.1 <- gam(FGm12 ~ te(FGm0, weight)) # SysPres, DiaPres, height, Treatment)
+# semiparametric model - SysPres (low df at model 1.1)
+gam_2.1 <- gam(FGm12 ~ s(FGm0, by=Treatment) + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
 summary(gam_2.1)
 ```
 ```{r}
@@ -95,41 +104,27 @@ plot(gam_2.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE,
 ```{r}
 gam.check(gam_2.1)
 ```
-
-
-
-```{r}
-# semiparametric model - SysPres (low df at model 1.1)
-gam_3.1 <- gam(FGm12 ~ s(FGm0, by=Treatment) + SysPres + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
-summary(gam_3.1)
-```
-```{r}
-plot(gam_3.1,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_3.1)[1])
-```
-```{r}
-gam.check(gam_3.1)
-```
 ```{r}
 # semiparametric model - FGm0 (low df at model 1.1)
-gam_3.2 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
-summary(gam_3.2)
+gam_2.2 <- gam(FGm12 ~ FGm0 + s(SysPres, by=Treatment) + s(DiaPres, by=Treatment) + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_2.2)
 ```
 ```{r}
-plot(gam_3.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_3.1)[1])
+plot(gam_2.2,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_2.2)[1])
 ```
 ```{r}
-gam.check(gam_3.2)
+gam.check(gam_2.2)
 ```
 ```{r}
 # semiparametric model - DiaPres (low df at model 1.1)
-gam_3.3 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + DiaPres + s(height, by=Treatment) + s(weight, by=Treatment))
-summary(gam_3.3)
+gam_2.3 <- gam(FGm12 ~ s(FGm0, by=Treatment) + s(SysPres, by=Treatment) + DiaPres + s(height, by=Treatment) + s(weight, by=Treatment))
+summary(gam_2.3)
 ```
 ```{r}
-plot(gam_3.3,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_3.3)[1])
+plot(gam_2.3,residuals=TRUE, shade=TRUE, shade.col="lightblue", seWithMean=TRUE, cex=3, lwd=2, shift= coef(gam_2.3)[1])
 ```
 ```{r}
-gam.check(gam_3.3)
+gam.check(gam_2.3)
 ```
 
 ```{r}
@@ -265,7 +260,14 @@ Looking at the anova of all models that we fitted, we could conclude that the be
 
 
 
-
+```{r}
+vis.gam(gam_0.1,view=c("FGm0","weight"),
+        theta = 40, phi = 25, r = sqrt(3), d = 1)
+```
+```{r}
+vis.gam(gam_6.1,view=c("FGm0","weight"),
+        theta = 40, phi = 25, r = sqrt(3), d = 1)
+```
 
 
 
