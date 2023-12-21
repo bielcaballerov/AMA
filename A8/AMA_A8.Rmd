@@ -12,7 +12,23 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r loading libraries, include=FALSE}
+library(readxl)
 
+```
+
+# Data preperation
+```{r}
+concrete <- as.data.frame(read_excel("Concrete_Data.xls"))
+DescVars <- names(concrete)
+names(concrete) <- c("Cement","Slag","FlyAsh","Water","Superplast", "CoarseAggr","FineAggr","Age","Strength")
+```
+
+```{r}
+set.seed(42)
+
+sample <- sample(nrow(concrete), 700)
+train_set <- concrete[sample,]
+test_set <- concrete[!sample,]
 ```
 
 # 1. Fit a Random Forest
