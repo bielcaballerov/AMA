@@ -1,0 +1,100 @@
+---
+title: "Interpretability and Explainability in Machine Learning"
+author: "Biel Caballero Vergés, Svenja Menzenbach and Kleber Enrique Reyes Illescas"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading libraries, include=FALSE}
+
+```
+
+# 1. Fit a Random Forest
+a. Compute the Variable Importance by the reduction of the impurity at the splits defined by each variable.
+```{r}
+
+```
+
+b. Compute the Variable Importance by out-of-bag random permutations.
+```{r}
+
+```
+
+c. Do a graphical representation of both Variable Importance measures.
+```{r}
+
+```
+
+d. Compute the Variable Importance of each variable by Shapley Values.
+```{r}
+
+```
+
+# 2. Fit a linear model and a gam model.
+a. Summarize, numerically and graphically, the fitted models.
+```{r}
+
+```
+
+b. Compute the Variable Importance by Shappley values in the linear and gam fitted models. Compare your results with what you have learned before.
+```{r}
+
+```
+
+# 3. Relevance by Ghost Variables
+Compute the relevance by ghots variables in the three fitted modls.
+```{r}
+
+```
+
+# 4. Global Importance Measures and Plots using the library DALEX
+a. Compute Variable Importance by Random Permutations
+```{r}
+
+```
+
+b. Do the Partial Dependence Plot for each explanatory variable.
+```{r}
+
+```
+
+c. Do the Local (or Conditional) Dependence Plot for each explanatory variable.
+```{r}
+
+```
+
+# 5. Local explainers with library DALEX
+Choose two instances in the the test set, the prediction for which we want to explain:
+• The data with the lowest value in Strength. • The data with the largest value in Strength.
+For these two instances, do thefollowing tasks for the fitted random forest.
+a. Explain the predictions using SHAP.
+```{r}
+
+```
+
+b. Explain the predictions using Break-down plots.
+```{r}
+
+```
+
+c. Explain the predictions using LIME.
+```{r}
+
+```
+
+d. Do the Individual conditional expectation (ICE) plot, or ceteris paribus plot
+```{r}
+
+```
+
+e. Plot in one graphic the Individual conditional expectation (ICE) plot for variable Age for eachcase in the test sample. Add the global Partial Depedence Plot.
+```{r}
+
+```
+
