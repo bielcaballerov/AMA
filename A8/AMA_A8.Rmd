@@ -13,7 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r loading libraries, include=FALSE}
 library(readxl)
-
+library(ranger)
+library(vip)
+library(gridExtra)
 ```
 
 # Data preperation
@@ -29,27 +31,49 @@ set.seed(42)
 sample <- sample(nrow(concrete), 700)
 train_set <- concrete[sample,]
 test_set <- concrete[!sample,]
+
+head(train_set)
 ```
 
 # 1. Fit a Random Forest
 a. Compute the Variable Importance by the reduction of the impurity at the splits defined by each variable.
 ```{r}
+model_rf_imp <- ranger(
+  Strength ~ .,
+  data = train_set, 
+  importance='impurity'
+)
+print(model_rf_imp)
 
 ```
 
 b. Compute the Variable Importance by out-of-bag random permutations.
 ```{r}
-
+model_rf_perm <- ranger(
+  Strength ~ .,
+  data = train_set, 
+  importance='permutation'
+)
+print(model_rf_perm)
 ```
 
 c. Do a graphical representation of both Variable Importance measures.
 ```{r}
-
+rf_imp_vip <- vip(model_rf_imp)
+rf_perm_vip <- vip(model_rf_perm)
+grid.arrange(rf_imp_vip, rf_perm_vip, ncol=2, top="Left: Reduction in impurity at splits. Right: Out-of-bag permutations")
 ```
 
 d. Compute the Variable Importance of each variable by Shapley Values.
 ```{r}
+y_hat<-function(model, data){
+  predict(model, data)
+}
 
+rf_shapley <- vip(model_rf_imp, method="shap",
+                  pred_wrapper=predict,
+                  train = train_set, # argument 'train' must be provided) 
+                  newdata=test_set)
 ```
 
 # 2. Fit a linear model and a gam model.
