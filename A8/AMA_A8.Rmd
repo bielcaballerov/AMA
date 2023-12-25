@@ -16,6 +16,14 @@ library(readxl)
 library(ranger)
 library(vip)
 library(gridExtra)
+library(DALEX)
+library(DALEXtra)
+library(lime)
+library(iml)
+library(localModel)
+# library(fastshap) # Attention! It re-define "explain" from DALEX
+if (require(ghostvar)){library(ghostvar)}
+library(mgcv)
 ```
 
 # Data preperation
@@ -67,20 +75,29 @@ grid.arrange(rf_imp_vip, rf_perm_vip, ncol=2, top="Left: Reduction in impurity a
 d. Compute the Variable Importance of each variable by Shapley Values.
 ```{r}
 y_hat<-function(model, data){
-  predict(model, data)
+  pred <- predict(model, data)
+  return(pred$predictions)
 }
 
-rf_shapley <- vip(model_rf_imp, method="shap",
-                  pred_wrapper=predict,
-                  train = train_set, # argument 'train' must be provided) 
-                  newdata=test_set)
+rf_shapley <- vip(model_rf_imp, method = "shap",
+                  pred_wrapper = y_hat,
+                  train = train_set,  # argument 'train' must be provided
+                  newdata = test_set)
 ```
 
 # 2. Fit a linear model and a gam model.
 a. Summarize, numerically and graphically, the fitted models.
 ```{r}
-
+lm_strength <- lm(Strength ~ ., data = train_set)
+(summ_lm_strength <- summary(lm_strength))
 ```
+```{r}
+gam_strength <- gam(Strength ~ s(Cement) + s(Slag) + s(FlyAsh) + s(Water) + s(Superplast) + s(CoarseAggr) + s(FineAggr) + s(Age), # change model?
+                 data = train_set)
+(summ_gam_strength <- summary(gam_strength))
+```
+
+
 
 b. Compute the Variable Importance by Shappley values in the linear and gam fitted models. Compare your results with what you have learned before.
 ```{r}
