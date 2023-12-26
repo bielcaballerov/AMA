@@ -24,6 +24,7 @@ library(localModel)
 # library(fastshap) # Attention! It re-define "explain" from DALEX
 if (require(ghostvar)){library(ghostvar)}
 library(mgcv)
+library(grid)
 ```
 
 # Data preperation
@@ -75,14 +76,14 @@ grid.arrange(rf_imp_vip, rf_perm_vip, ncol=2, top="Left: Reduction in impurity a
 d. Compute the Variable Importance of each variable by Shapley Values.
 ```{r}
 y_hat<-function(model, data){
-  pred <- predict(model, data)
-  return(pred$predictions)
+  predict(model, data)
 }
 
 rf_shapley <- vip(model_rf_imp, method = "shap",
                   pred_wrapper = y_hat,
                   train = train_set,  # argument 'train' must be provided
-                  newdata = test_set)
+                  newdata = test_set[,-9],
+                  num_features = 8)
 ```
 
 # 2. Fit a linear model and a gam model.
@@ -96,17 +97,44 @@ gam_strength <- gam(Strength ~ s(Cement) + s(Slag) + s(FlyAsh) + s(Water) + s(Su
                  data = train_set)
 (summ_gam_strength <- summary(gam_strength))
 ```
-
-
+```{r}
+plot(lm_strength)
+plot(gam_strength)
+```
 
 b. Compute the Variable Importance by Shappley values in the linear and gam fitted models. Compare your results with what you have learned before.
-```{r}
 
+```{r}
+lm_strength_shapley <- vip(lm_strength, method="shap",
+                  pred_wrapper=predict.lm,
+                  train=train_set, # train set must be specified
+                  newdata=test_set[,-9], 
+                  num_features = 8,
+                  exact=TRUE)
+
+plot(lm_strength_shapley)
+```
+```{r}
+gam_strength_shapley <- vip(gam_strength, method="shap",
+                  pred_wrapper=predict.gam,
+                  train=train_set, # train set must be specified
+                  newdata=test_set[,-9],
+                  num_features = 8,
+                  exact=TRUE)
+
+plot(gam_strength_shapley)
 ```
 
 # 3. Relevance by Ghost Variables
-Compute the relevance by ghots variables in the three fitted modls.
+Compute the relevance by ghots variables in the three fitted models.
 ```{r}
+source("relev.ghost.var.R")
+Rel_Gh_Var <- relev.ghost.var(model=gam_strength, 
+                              newdata = test_set[, -9],
+                              y.ts = test_set[, 9],
+                              func.model.ghost.var = lm
+)
+plot.relev.ghost.var(Rel_Gh_Var,n1=500,ncols.plot = 3)
 
 ```
 
