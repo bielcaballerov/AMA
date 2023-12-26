@@ -37,11 +37,14 @@ names(concrete) <- c("Cement","Slag","FlyAsh","Water","Superplast", "CoarseAggr"
 ```{r}
 set.seed(42)
 
+concrete_copy <- concrete
+
 sample <- sample(nrow(concrete), 700)
-train_set <- concrete[sample,]
-test_set <- concrete[!sample,]
+train_set <- concrete_copy[sample,]
+test_set <- concrete_copy[-sample,]
 
 head(train_set)
+head(test_set)
 ```
 
 # 1. Fit a Random Forest
@@ -76,7 +79,7 @@ grid.arrange(rf_imp_vip, rf_perm_vip, ncol=2, top="Left: Reduction in impurity a
 d. Compute the Variable Importance of each variable by Shapley Values.
 ```{r}
 y_hat<-function(model, data){
-  predict(model, data)
+  predict(model, newdata=data)
 }
 
 rf_shapley <- vip(model_rf_imp, method = "shap",
@@ -141,7 +144,10 @@ plot.relev.ghost.var(Rel_Gh_Var,n1=500,ncols.plot = 3)
 # 4. Global Importance Measures and Plots using the library DALEX
 a. Compute Variable Importance by Random Permutations
 ```{r}
-
+explainer_rf <- explain.default(model = model_rf_imp,  
+                               data = test_set[, -9],
+                               y = test_set[, 9], 
+                               label = "Random Forest")
 ```
 
 b. Do the Partial Dependence Plot for each explanatory variable.
