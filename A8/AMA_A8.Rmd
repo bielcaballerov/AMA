@@ -1,0 +1,191 @@
+---
+title: "Interpretability and Explainability in Machine Learning"
+author: "Biel Caballero Vergés, Svenja Menzenbach and Kleber Enrique Reyes Illescas"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading libraries, include=FALSE}
+library(readxl)
+library(ranger)
+library(vip)
+library(gridExtra)
+library(DALEX)
+library(DALEXtra)
+library(lime)
+library(iml)
+library(localModel)
+# library(fastshap) # Attention! It re-define "explain" from DALEX
+if (require(ghostvar)){library(ghostvar)}
+library(mgcv)
+library(grid)
+```
+
+# Data preperation
+```{r}
+concrete <- as.data.frame(read_excel("Concrete_Data.xls"))
+DescVars <- names(concrete)
+names(concrete) <- c("Cement","Slag","FlyAsh","Water","Superplast", "CoarseAggr","FineAggr","Age","Strength")
+```
+
+```{r}
+set.seed(42)
+
+concrete_copy <- concrete
+
+sample <- sample(nrow(concrete), 700)
+train_set <- concrete_copy[sample,]
+test_set <- concrete_copy[-sample,]
+
+head(train_set)
+head(test_set)
+```
+
+# 1. Fit a Random Forest
+a. Compute the Variable Importance by the reduction of the impurity at the splits defined by each variable.
+```{r}
+model_rf_imp <- ranger(
+  Strength ~ .,
+  data = train_set, 
+  importance='impurity'
+)
+print(model_rf_imp)
+
+```
+
+b. Compute the Variable Importance by out-of-bag random permutations.
+```{r}
+model_rf_perm <- ranger(
+  Strength ~ .,
+  data = train_set, 
+  importance='permutation'
+)
+print(model_rf_perm)
+```
+
+c. Do a graphical representation of both Variable Importance measures.
+```{r}
+rf_imp_vip <- vip(model_rf_imp)
+rf_perm_vip <- vip(model_rf_perm)
+grid.arrange(rf_imp_vip, rf_perm_vip, ncol=2, top="Left: Reduction in impurity at splits. Right: Out-of-bag permutations")
+```
+
+d. Compute the Variable Importance of each variable by Shapley Values.
+```{r}
+y_hat<-function(model, data){
+  predict(model, newdata=data)
+}
+
+rf_shapley <- vip(model_rf_imp, method = "shap",
+                  pred_wrapper = y_hat,
+                  train = train_set,  # argument 'train' must be provided
+                  newdata = test_set[,-9],
+                  num_features = 8)
+```
+
+# 2. Fit a linear model and a gam model.
+a. Summarize, numerically and graphically, the fitted models.
+```{r}
+lm_strength <- lm(Strength ~ ., data = train_set)
+(summ_lm_strength <- summary(lm_strength))
+```
+```{r}
+gam_strength <- gam(Strength ~ s(Cement) + s(Slag) + s(FlyAsh) + s(Water) + s(Superplast) + s(CoarseAggr) + s(FineAggr) + s(Age), # change model?
+                 data = train_set)
+(summ_gam_strength <- summary(gam_strength))
+```
+```{r}
+plot(lm_strength)
+plot(gam_strength)
+```
+
+b. Compute the Variable Importance by Shappley values in the linear and gam fitted models. Compare your results with what you have learned before.
+
+```{r}
+lm_strength_shapley <- vip(lm_strength, method="shap",
+                  pred_wrapper=predict.lm,
+                  train=train_set, # train set must be specified
+                  newdata=test_set[,-9], 
+                  num_features = 8,
+                  exact=TRUE)
+
+plot(lm_strength_shapley)
+```
+```{r}
+gam_strength_shapley <- vip(gam_strength, method="shap",
+                  pred_wrapper=predict.gam,
+                  train=train_set, # train set must be specified
+                  newdata=test_set[,-9],
+                  num_features = 8,
+                  exact=TRUE)
+
+plot(gam_strength_shapley)
+```
+
+# 3. Relevance by Ghost Variables
+Compute the relevance by ghots variables in the three fitted models.
+```{r}
+source("relev.ghost.var.R")
+Rel_Gh_Var <- relev.ghost.var(model=gam_strength, 
+                              newdata = test_set[, -9],
+                              y.ts = test_set[, 9],
+                              func.model.ghost.var = lm
+)
+plot.relev.ghost.var(Rel_Gh_Var,n1=500,ncols.plot = 3)
+
+```
+
+# 4. Global Importance Measures and Plots using the library DALEX
+a. Compute Variable Importance by Random Permutations
+```{r}
+explainer_rf <- explain.default(model = model_rf_imp,  
+                               data = test_set[, -9],
+                               y = test_set[, 9], 
+                               label = "Random Forest")
+```
+
+b. Do the Partial Dependence Plot for each explanatory variable.
+```{r}
+
+```
+
+c. Do the Local (or Conditional) Dependence Plot for each explanatory variable.
+```{r}
+
+```
+
+# 5. Local explainers with library DALEX
+Choose two instances in the the test set, the prediction for which we want to explain:
+• The data with the lowest value in Strength. • The data with the largest value in Strength.
+For these two instances, do thefollowing tasks for the fitted random forest.
+a. Explain the predictions using SHAP.
+```{r}
+
+```
+
+b. Explain the predictions using Break-down plots.
+```{r}
+
+```
+
+c. Explain the predictions using LIME.
+```{r}
+
+```
+
+d. Do the Individual conditional expectation (ICE) plot, or ceteris paribus plot
+```{r}
+
+```
+
+e. Plot in one graphic the Individual conditional expectation (ICE) plot for variable Age for eachcase in the test sample. Add the global Partial Depedence Plot.
+```{r}
+
+```
+
