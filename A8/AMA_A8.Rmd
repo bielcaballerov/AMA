@@ -79,15 +79,15 @@ grid.arrange(rf_imp_vip, rf_perm_vip, ncol=2, top="Left: Reduction in impurity a
 
 d. Compute the Variable Importance of each variable by Shapley Values.
 ```{r}
-y_hat<-function(model, data){
-  predict(model, newdata=data)
-}
-
 rf_shapley <- vip(model_rf_imp, method = "shap",
-                  pred_wrapper = y_hat,
+                  pred_wrapper = yhat,
                   train = train_set,  # argument 'train' must be provided
                   newdata = test_set[,-9],
                   num_features = 8)
+grid.arrange(rf_imp_vip, rf_perm_vip, rf_shapley,
+             ncol=2, nrow=2,
+             top="Top left: Impurity. Top right: oob permutations. Bottom left: Shapley values"
+            )
 ```
 
 # 2. Fit a linear model and a gam model.
@@ -138,7 +138,7 @@ Rel_Gh_Var <- relev.ghost.var(model=gam_strength,
                               y.ts = test_set[, 9],
                               func.model.ghost.var = lm
 )
-plot.relev.ghost.var(Rel_Gh_Var,n1=500,ncols.plot = 3)
+plot.relev.ghost.var(Rel_Gh_Var,n1=500,ncols.plot = 4)
 
 ```
 
@@ -165,7 +165,7 @@ PDP_rf <- model_profile(
 
 plot(PDP_rf, facet_ncol=2)
 ```
-For Cement and CoarseAggr, the predicted Strength initially rises with an increase in these materials but eventually decreases after reaching an optimal point. This suggests an optimal quantity for both components, as excessive use could diminish Strength. On the other hand, FlyAsh and Slag show a consistent increase in predicted Strength with higher quantities, implying their positive impact on concrete Strength.     
+Cement and Slag show a consistent increase in predicted Strength with higher quantities, implying their positive impact on concrete Strength. FineAggr and FlyAsh on the other hand show a constant decrease. CoarseAggr has a little increase at 1150 so it has a minimum. Age increases strongly at the beginning and converges fast to a certain value. Superplast also increases at the beginning and converges to a certain value but the increase is lower. Water shows a decreasing S-curve with a higher slope at around 175. Age, Cement and Water seem to have the highest impact.
 
 c. Do the Local (or Conditional) Dependence Plot for each explanatory variable.
 ```{r}
@@ -181,7 +181,7 @@ CDP_rf <- model_profile(
 
 plot(CDP_rf, facet_ncol=2)
 ```
-While cement and coarse aggregate initially boost concrete strength, their impact diminishes at higher proportions. Optimal dosages exist for these materials, as exceeding them may impair strength. In contrast, fly ash and slag consistently enhance concrete strength with increasing amounts. 
+In comparison to the previous plot age decreases a bit after reaching a maximum. Also Superplast continous increasing  after 12. But in general the plots look very similar.
 
 
 # 5. Local explainers with library DALEX
@@ -204,7 +204,7 @@ bd_rf <- predict_parts(explainer = explainer_rf,
 bd_rf
 plot(bd_rf)
 ```
-This plot shows that the features FineAggr, Cement, Superplast and Slag have the biggest impact (positively) and CoarseAggr negatively.
+This plot shows that the features Age, Cement, Water, Superplast and FineAggr have the biggest impact (negatively).
 
 
 ```{r}
@@ -215,7 +215,7 @@ bd_rf <- predict_parts(explainer = explainer_rf,
 bd_rf
 plot(bd_rf)
 ```
-This plot shows that all features have a good contribution towards Strength.
+This plot shows that all features have a good contribution towards Strength. Here again Age, Water and Cement have the highest impact but Water is over Cement even though they value es very similar. Also Slag is more significant here.
 
 b. Explain the predictions using Break-down plots.
 ```{r}
@@ -226,7 +226,7 @@ bd_rf <- predict_parts(explainer = explainer_rf,
 bd_rf
 plot(bd_rf)
 ```
-Here the plot shows that Cement and Superplast have a significant impact on the Strength. This means that we can focus on optimizing these two input variables to achieve the desired Strength.
+Here the plot shows that Age, Cement, Superplast and Water have a significant impact on the Strength. This means that we can focus on optimizing these input variables to achieve the desired Strength.
 
 
 ```{r}
@@ -237,7 +237,7 @@ bd_rf <- predict_parts(explainer = explainer_rf,
 bd_rf
 plot(bd_rf)
 ```
-This plot shows that the predicted concrete strength increases with increasing CoarseAggr proportions up to a point of around 50%.    
+Here we can see again that age, water and cement are very important.
 
 
 c. Explain the predictions using LIME.
@@ -249,7 +249,7 @@ bd_rf <- predict_surrogate(explainer = explainer_rf,
 bd_rf
 plot(bd_rf)
 ```
-This plot that Cement, Water, Superplast and FineAggr have the biggest positive impact while Slag the biggest negative impact.
+This plot that Cement, Water, Superplast and FineAggr have the biggest negative impact while Slag the biggest positive impact.
 
 
 ```{r}
@@ -260,7 +260,7 @@ bd_rf <- predict_surrogate(explainer = explainer_rf,
 bd_rf
 plot(bd_rf)
 ```
-The plot shows all having a big impact, but Cement and Water being the top ones.
+The plot shows all having a positive impact, but Cement and Water and Superplast being the top ones.
 
 
 d. Do the Individual conditional expectation (ICE) plot, or ceteris paribus plot
@@ -271,7 +271,7 @@ cp_rf <- predict_profile(explainer = explainer_rf,
 cp_rf
 plot(cp_rf,facet_ncol=2)
 ```
-The plots show that the predicted concrete strength increases with increasing cement content, fine aggregate content, superplasticizer content, and slag content. However, the predicted concrete strength initially increases with increasing coarse aggregate content, but eventually reaches a peak and then declines.
+The plots show that the predicted concrete strength is low when the content of its ingredients is very low as the points of the prediction seem to be the minimum of each curve..
 
 
 ```{r}
@@ -281,7 +281,7 @@ cp_rf <- predict_profile(explainer = explainer_rf,
 cp_rf
 plot(cp_rf,facet_ncol=2)
 ```
-The findings indicate that the predicted concrete strength increases linearly with increasing cement content and fine aggregate content. In contrast, the predicted concrete strength increases non-linearly with increasing superplasticizer content and slag content.    
+The highest strength however is reached by the maximum of each curve.    
 
 
 e. Plot in one graphic the Individual conditional expectation (ICE) plot for variable Age for eachcase in the test sample. Add the global Partial Depedence Plot.
