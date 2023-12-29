@@ -25,6 +25,7 @@ library(localModel)
 if (require(ghostvar)){library(ghostvar)}
 library(mgcv)
 library(grid)
+library(ggplot2)
 ```
 
 # Data preperation
@@ -152,40 +153,146 @@ explainer_rf <- explain.default(model = model_rf_imp,
 
 b. Do the Partial Dependence Plot for each explanatory variable.
 ```{r}
+PDP_rf <- model_profile(
+  explainer=explainer_rf,
+  variables = NULL,  # All variables are used
+  N = NULL, # All available data are used
+  groups = NULL,
+  k = NULL,
+  center = TRUE,
+  type = "partial" #  partial, conditional or accumulated
+)
 
+plot(PDP_rf, facet_ncol=2)
 ```
+For Cement and CoarseAggr, the predicted Strength initially rises with an increase in these materials but eventually decreases after reaching an optimal point. This suggests an optimal quantity for both components, as excessive use could diminish Strength. On the other hand, FlyAsh and Slag show a consistent increase in predicted Strength with higher quantities, implying their positive impact on concrete Strength.     
 
 c. Do the Local (or Conditional) Dependence Plot for each explanatory variable.
 ```{r}
+CDP_rf <- model_profile(
+  explainer=explainer_rf,
+  variables = NULL,  # All variables are used
+  N = NULL, # All available data are used
+  groups = NULL,
+  k = NULL,
+  center = TRUE,
+  type = "conditional" #  partial, conditional or accumulated
+)
 
+plot(CDP_rf, facet_ncol=2)
 ```
+While cement and coarse aggregate initially boost concrete strength, their impact diminishes at higher proportions. Optimal dosages exist for these materials, as exceeding them may impair strength. In contrast, fly ash and slag consistently enhance concrete strength with increasing amounts. 
+
 
 # 5. Local explainers with library DALEX
-Choose two instances in the the test set, the prediction for which we want to explain:
-• The data with the lowest value in Strength. • The data with the largest value in Strength.
-For these two instances, do thefollowing tasks for the fitted random forest.
+Choose two instances in the the test set, the prediction for which we want to explain:    
+• The data with the lowest value in Strength.     
+• The data with the largest value in Strength.    
+For these two instances, do the following tasks for the fitted random forest.    
+
+```{r}
+lowestStrength = concrete[which.min(concrete$Strength), ]
+highestStrength = concrete[which.max(concrete$Strength), ]
+```
+
 a. Explain the predictions using SHAP.
 ```{r}
+bd_rf <- predict_parts(explainer = explainer_rf,
+                 new_observation = lowestStrength,
+                            type = "shap")
 
+bd_rf
+plot(bd_rf)
 ```
+This plot shows that the features FineAggr, Cement, Superplast and Slag have the biggest impact (positively) and CoarseAggr negatively.
+
+
+```{r}
+bd_rf <- predict_parts(explainer = explainer_rf,
+                 new_observation = highestStrength,
+                            type = "shap")
+
+bd_rf
+plot(bd_rf)
+```
+This plot shows that all features have a good contribution towards Strength.
 
 b. Explain the predictions using Break-down plots.
 ```{r}
+bd_rf <- predict_parts(explainer = explainer_rf,
+                 new_observation = lowestStrength,
+                            type = "break_down")
 
+bd_rf
+plot(bd_rf)
 ```
+Here the plot shows that Cement and Superplast have a significant impact on the Strength. This means that we can focus on optimizing these two input variables to achieve the desired Strength.
+
+
+```{r}
+bd_rf <- predict_parts(explainer = explainer_rf,
+                 new_observation = highestStrength,
+                            type = "break_down")
+
+bd_rf
+plot(bd_rf)
+```
+This plot shows that the predicted concrete strength increases with increasing CoarseAggr proportions up to a point of around 50%.    
+
 
 c. Explain the predictions using LIME.
 ```{r}
+bd_rf <- predict_surrogate(explainer = explainer_rf,
+                 new_observation = lowestStrength,
+                            type = "localModel")
 
+bd_rf
+plot(bd_rf)
 ```
+This plot that Cement, Water, Superplast and FineAggr have the biggest positive impact while Slag the biggest negative impact.
+
+
+```{r}
+bd_rf <- predict_surrogate(explainer = explainer_rf,
+                 new_observation = highestStrength,
+                            type = "localModel")
+
+bd_rf
+plot(bd_rf)
+```
+The plot shows all having a big impact, but Cement and Water being the top ones.
+
 
 d. Do the Individual conditional expectation (ICE) plot, or ceteris paribus plot
 ```{r}
+cp_rf <- predict_profile(explainer = explainer_rf,
+                 new_observation = lowestStrength)
 
+cp_rf
+plot(cp_rf,facet_ncol=2)
 ```
+The plots show that the predicted concrete strength increases with increasing cement content, fine aggregate content, superplasticizer content, and slag content. However, the predicted concrete strength initially increases with increasing coarse aggregate content, but eventually reaches a peak and then declines.
+
+
+```{r}
+cp_rf <- predict_profile(explainer = explainer_rf,
+                 new_observation = highestStrength)
+
+cp_rf
+plot(cp_rf,facet_ncol=2)
+```
+The findings indicate that the predicted concrete strength increases linearly with increasing cement content and fine aggregate content. In contrast, the predicted concrete strength increases non-linearly with increasing superplasticizer content and slag content.    
+
 
 e. Plot in one graphic the Individual conditional expectation (ICE) plot for variable Age for eachcase in the test sample. Add the global Partial Depedence Plot.
 ```{r}
+mp_rf <- model_profile(explainer = explainer_rf,
+  variables = "Age",
+  N = 100,
+  type = "partial"
+)
 
+plot(mp_rf, geom = "profiles") +  
+  ggtitle("Ceteris-paribus and partial-dependence profiles for Age") 
 ```
-
+The plot shows that the predicted Strength of concrete generally increases with increasing Age, but the relationship is complex and non-linear. The average effect of Age on Strength is positive, but the effect diminishes at higher ages.
