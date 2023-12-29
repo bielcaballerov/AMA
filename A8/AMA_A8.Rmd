@@ -28,14 +28,15 @@ library(grid)
 library(ggplot2)
 ```
 
-# Data preperation
+# Data preparation
 ```{r}
 concrete <- as.data.frame(read_excel("Concrete_Data.xls"))
 DescVars <- names(concrete)
-names(concrete) <- c("Cement","Slag","FlyAsh","Water","Superplast", "CoarseAggr","FineAggr","Age","Strength")
+names(concrete) <- c("Cement","Slag","FlyAsh","Water","Superplast", 
+                     "CoarseAggr","FineAggr","Age","Strength")
 ```
 
-```{r}
+```{r, include=FALSE}
 set.seed(42)
 
 concrete_copy <- concrete
@@ -43,9 +44,6 @@ concrete_copy <- concrete
 sample <- sample(nrow(concrete), 700)
 train_set <- concrete_copy[sample,]
 test_set <- concrete_copy[-sample,]
-
-head(train_set)
-head(test_set)
 ```
 
 # 1. Fit a Random Forest
@@ -60,6 +58,8 @@ print(model_rf_imp)
 
 ```
 
+
+
 b. Compute the Variable Importance by out-of-bag random permutations.
 ```{r}
 model_rf_perm <- ranger(
@@ -70,12 +70,18 @@ model_rf_perm <- ranger(
 print(model_rf_perm)
 ```
 
+Both methods have similar performance (impurity being slightly better)
+
 c. Do a graphical representation of both Variable Importance measures.
 ```{r}
 rf_imp_vip <- vip(model_rf_imp)
 rf_perm_vip <- vip(model_rf_perm)
-grid.arrange(rf_imp_vip, rf_perm_vip, ncol=2, top="Left: Reduction in impurity at splits. Right: Out-of-bag permutations")
+grid.arrange(rf_imp_vip, rf_perm_vip, ncol=2, 
+             top="Left: Reduction in impurity at splits. Right: Out-of-bag permutations")
 ```
+
+Both methods agree on nearly every parameter. Age, cement, water and superplast are unquestionably the four most significant variables.
+
 
 d. Compute the Variable Importance of each variable by Shapley Values.
 ```{r}
@@ -90,6 +96,8 @@ grid.arrange(rf_imp_vip, rf_perm_vip, rf_shapley,
             )
 ```
 
+Shapley's results align with the same trend, reaffirming the most important variables.
+
 # 2. Fit a linear model and a gam model.
 a. Summarize, numerically and graphically, the fitted models.
 ```{r}
@@ -97,14 +105,22 @@ lm_strength <- lm(Strength ~ ., data = train_set)
 (summ_lm_strength <- summary(lm_strength))
 ```
 ```{r}
-gam_strength <- gam(Strength ~ s(Cement) + s(Slag) + s(FlyAsh) + s(Water) + s(Superplast) + s(CoarseAggr) + s(FineAggr) + s(Age), # change model?
+gam_strength <- gam(Strength ~ s(Cement) + s(Slag) + s(FlyAsh) + s(Water) + 
+                        s(Superplast) + s(CoarseAggr) + s(FineAggr) + s(Age), 
                  data = train_set)
 (summ_gam_strength <- summary(gam_strength))
 ```
 ```{r}
 plot(lm_strength)
+```
+```{r}
 plot(gam_strength)
 ```
+```{r}
+gam.check(gam_strength)
+```
+
+
 
 b. Compute the Variable Importance by Shappley values in the linear and gam fitted models. Compare your results with what you have learned before.
 
