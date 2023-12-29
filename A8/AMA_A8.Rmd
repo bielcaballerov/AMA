@@ -86,7 +86,7 @@ Both methods agree on nearly every parameter. Age, cement, water and superplast 
 d. Compute the Variable Importance of each variable by Shapley Values.
 ```{r}
 rf_shapley <- vip(model_rf_imp, method = "shap",
-                  pred_wrapper = yhat, num_features = 9,
+                  pred_wrapper = yhat, num_features = 8,
                   train = train_set,
                   newdata = test_set[,-c(9)])
 
@@ -104,9 +104,11 @@ a. Summarize, numerically and graphically, the fitted models.
 lm_strength <- lm(Strength ~ ., data = train_set)
 (summ_lm_strength <- summary(lm_strength))
 ```
+
 ```{r}
-gam_strength <- gam(Strength ~ s(Cement) + s(Slag) + s(FlyAsh) + s(Water) + 
-                        s(Superplast) + s(CoarseAggr) + s(FineAggr) + s(Age), 
+gam_strength <- gam(Strength ~ s(Cement, k=30) + s(Slag, k=45) + s(FlyAsh, k=30) + 
+                        s(Water, k=30) + s(Superplast, k=30) + s(CoarseAggr, k=30) + 
+                        s(FineAggr, k=30) + s(Age, k=10), 
                  data = train_set)
 (summ_gam_strength <- summary(gam_strength))
 ```
@@ -120,43 +122,65 @@ plot(gam_strength)
 gam.check(gam_strength)
 ```
 
-
+Without hesitation, the gam model looks better than the linear one. The error is minor, and the gam.check plots look very nice.
 
 b. Compute the Variable Importance by Shappley values in the linear and gam fitted models. Compare your results with what you have learned before.
 
 ```{r}
 lm_strength_shapley <- vip(lm_strength, method="shap",
                   pred_wrapper=predict.lm,
-                  train=train_set, # train set must be specified
+                  train=train_set,
                   newdata=test_set[,-9], 
                   num_features = 8,
                   exact=TRUE)
 
-plot(lm_strength_shapley)
-```
-```{r}
 gam_strength_shapley <- vip(gam_strength, method="shap",
                   pred_wrapper=predict.gam,
-                  train=train_set, # train set must be specified
+                  train=train_set,
                   newdata=test_set[,-9],
                   num_features = 8,
                   exact=TRUE)
 
-plot(gam_strength_shapley)
+grid.arrange(lm_strength_shapley, gam_strength_shapley, ncol=2, 
+             top="Left: Linear model. Right: GAM")
 ```
+
+In this case Cement is the most important variable, but Age gains more relevance is the gam model. 
 
 # 3. Relevance by Ghost Variables
 Compute the relevance by ghots variables in the three fitted models.
 ```{r}
 source("relev.ghost.var.R")
+Rel_Gh_Var <- relev.ghost.var(model=model_rf_imp, 
+                              newdata = test_set[, -9],
+                              y.ts = test_set[, 9],
+                              func.model.ghost.var = lm
+)
+
+plot.relev.ghost.var(Rel_Gh_Var,n1=500,ncols.plot = 4)
+
+```
+```{r}
+Rel_Gh_Var <- relev.ghost.var(model=lm_strength, 
+                              newdata = test_set[, -9],
+                              y.ts = test_set[, 9],
+                              func.model.ghost.var = lm
+)
+
+plot.relev.ghost.var(Rel_Gh_Var,n1=500,ncols.plot = 4)
+```
+
+```{r}
 Rel_Gh_Var <- relev.ghost.var(model=gam_strength, 
                               newdata = test_set[, -9],
                               y.ts = test_set[, 9],
                               func.model.ghost.var = lm
 )
+
 plot.relev.ghost.var(Rel_Gh_Var,n1=500,ncols.plot = 4)
 
 ```
+
 
 # 4. Global Importance Measures and Plots using the library DALEX
 a. Compute Variable Importance by Random Permutations
